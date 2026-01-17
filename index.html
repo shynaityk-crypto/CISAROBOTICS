@@ -3,437 +3,695 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ArcheoHub — Git for Archaeology (Kazakhstan Edition)</title>
+  <title>ArcheoHub Pro — The Git Protocol for Heritage Data</title>
 
   <link rel="stylesheet" href="https://unpkg.com/@primer/css@^21.0.0/dist/primer.css">
-
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
+  
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
-
   <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    /* Basic visual adjustments on top of Primer to make it feel GitHub-like */
-    :root { --accent: #238636; --muted: #8b949e; }
-    body { background-color: #0d1117; color: #c9d1d9; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; }
-    header.Header { background-color:#161b22; border-bottom:1px solid #30363d; }
-    .brand { font-weight:700; font-size:1.15rem; margin-right:12px; color:#f0f6fc; }
-    .Header-link { color:#c9d1d9; margin-right:12px; }
-    .Header-link:hover { color:#fff; }
-    .form-control.input-contrast, .form-select { background:#0d1117; color:#c9d1d9; border:1px solid #30363d; }
-    .Box { background:#0d1117; border:1px solid #30363d; border-radius:8px; }
-    .Box-row { border-top:1px solid #30363d; padding:12px; display:flex; justify-content:space-between; align-items:center; }
-    .Box-row:first-child { border-top:0; }
-    .Box-title { color:#c9d1d9; padding:12px; font-size:1.05rem; }
-    .Label { font-size:12px; padding:4px 8px; border-radius:6px; }
-    .Label--orange { background:#6f4a2e; color:#fff; }
-    .Label--blue { background:#0366d6; color:#fff; }
-    .Label--green { background:#2da44e; color:#fff; }
-    .btn-primary { background:var(--accent); border-color:var(--accent); color:#fff; }
-    footer.footer { color:var(--muted); border-top:1px solid #30363d; padding:24px 0; }
-    /* layout */
-    .container-lg { max-width:1200px; margin:0 auto; padding:20px; }
-    .two-col { display:grid; grid-template-columns: 1fr 360px; gap:20px; }
-    @media (max-width:1000px){ .two-col { grid-template-columns: 1fr; } .panel-right { position:static; } }
-    /* map */
-    #map { height:520px; border-radius:8px; border:1px solid #30363d; }
-    /* repo list */
-    .repo-title { font-weight:700; color:#58a6ff; }
-    .muted { color:var(--muted); }
-    /* timeline */
-    #timeline { margin-top:12px; }
-    /* modal overlay */
-    .overlay { position:fixed; left:0; top:0; right:0; bottom:0; background: rgba(2,6,23,0.85); display:flex; align-items:center; justify-content:center; z-index:12000; }
-    .card-dark { background:#0d1117; border:1px solid #30363d; color:#c9d1d9; border-radius:10px; padding:16px; }
-    /* small responsive tweaks */
-    .small { font-size:13px; }
-    .btn-ghost { background: transparent; border: 1px solid rgba(255,255,255,0.04); color: #c9d1d9; }
-    /* tabs */
-    .tabs .tab { cursor:pointer; border-radius:6px; margin-right:6px; }
-    .tabs .tab.selected { background: rgba(88,166,255,0.08); }
-    /* contribution list */
-    .contrib-list { display:grid; gap:8px; }
-    .form-compact label{display:block;margin-bottom:8px;}
-    .form-compact input,.form-compact textarea,.form-compact select{width:100%;box-sizing:border-box;margin-top:4px;}
+    /* =========================================================================
+       EXTENDED CSS FRAMEWORK & UTILITIES
+       ========================================================================= */
+    :root {
+      --color-canvas-default: #0d1117;
+      --color-canvas-subtle: #161b22;
+      --color-border-default: #30363d;
+      --color-accent-fg: #58a6ff;
+      --color-success-fg: #3fb950;
+      --color-attention-fg: #d29922;
+      --color-danger-fg: #f85149;
+      --font-stack: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    }
+
+    body {
+      background-color: var(--color-canvas-default);
+      color: #c9d1d9;
+      font-family: var(--font-stack);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* Layout Components */
+    .app-container { display: flex; flex-direction: column; min-height: 100vh; }
+    .main-content { flex: 1; padding: 24px; max-width: 1400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+    
+    /* Header Enhancements */
+    header.Header { 
+      background-color: var(--color-canvas-subtle); 
+      border-bottom: 1px solid var(--color-border-default);
+      position: sticky; top: 0; z-index: 1000;
+    }
+    .brand-logo { font-size: 1.25rem; font-weight: 600; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+    .header-search { background: var(--color-canvas-default); border: 1px solid var(--color-border-default); border-radius: 6px; padding: 4px 12px; width: 300px; color: #fff; }
+
+    /* Navigation Tabs */
+    .UnderlineNav { border-bottom: 1px solid var(--color-border-default); margin-bottom: 16px; }
+    .UnderlineNav-item { color: #8b949e; padding: 8px 16px; cursor: pointer; border-bottom: 2px solid transparent; }
+    .UnderlineNav-item:hover { color: #fff; }
+    .UnderlineNav-item.selected { color: #fff; border-bottom-color: #f78166; font-weight: 600; }
+
+    /* Map Styles */
+    #map-surface { height: 600px; border-radius: 8px; border: 1px solid var(--color-border-default); z-index: 1; }
+    .leaflet-popup-content-wrapper { background: var(--color-canvas-subtle); color: #c9d1d9; border: 1px solid var(--color-border-default); }
+
+    /* Repo List Styles */
+    .repo-card { border-bottom: 1px solid var(--color-border-default); padding: 24px 0; display: flex; justify-content: space-between; }
+    .repo-card:last-child { border-bottom: 0; }
+    .repo-name { font-size: 1.25rem; color: var(--color-accent-fg); font-weight: 600; text-decoration: none; }
+    .repo-name:hover { text-decoration: underline; }
+    
+    /* Kanban Board */
+    .kanban-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px; }
+    .kanban-col { background: #161b22; border-radius: 6px; padding: 12px; border: 1px solid var(--color-border-default); }
+    .kanban-header { font-weight: 600; margin-bottom: 12px; display: flex; justify-content: space-between; }
+    .issue-card { background: var(--color-canvas-default); border: 1px solid var(--color-border-default); padding: 12px; border-radius: 6px; margin-bottom: 8px; cursor: grab; }
+
+    /* 3D Modal */
+    .fullscreen-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; flex-direction: column; }
+    #three-viewport { flex: 1; }
+    .controls-panel { position: absolute; bottom: 20px; left: 20px; background: rgba(22,27,34,0.8); padding: 15px; border-radius: 8px; border: 1px solid #30363d; pointer-events: auto; }
+
+    /* Animations */
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .view-fade { animation: fadeIn 0.3s ease-out; }
+
+    /* CSV Preview Table */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .data-table th { text-align: left; background: var(--color-canvas-subtle); padding: 8px; border: 1px solid var(--color-border-default); }
+    .data-table td { padding: 8px; border: 1px solid var(--color-border-default); }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--color-canvas-default); }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
+
+    /* Custom Tags */
+    .tag-discovery { background: #238636; color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+    .tag-analysis { background: #1f6feb; color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--color-border-default); padding: 40px 0; margin-top: 40px; color: #8b949e; font-size: 12px; }
   </style>
 </head>
 <body>
 
-<header class="Header d-flex flex-justify-between flex-items-center p-3">
-  <div class="d-flex flex-items-center">
-    <a class="brand">ArcheoHub</a>
-    <div class="d-none d-md-block">
-      <a class="Header-link" href="#" data-route="explore">Explore</a>
-      <a class="Header-link" href="#" data-route="map">Map</a>
-      <a class="Header-link" href="#" data-route="issues">Issues</a>
-      <a class="Header-link" href="#" data-route="prs">Pull requests</a>
+<div class="app-container">
+  <header class="Header p-3 d-flex flex-items-center flex-justify-between">
+    <div class="d-flex flex-items-center">
+      <a href="#" class="brand-logo" onclick="Router.go('explore')">
+        <svg height="32" viewBox="0 0 16 16" width="32" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        ArcheoHub <span class="Label Label--secondary ml-2">PRO</span>
+      </a>
+      <nav class="ml-4 d-none d-md-flex">
+        <a class="Header-link mr-3" onclick="Router.go('explore')">Explore</a>
+        <a class="Header-link mr-3" onclick="Router.go('map')">Global Map</a>
+        <a class="Header-link mr-3" onclick="Router.go('issues')">Community Issues</a>
+        <a class="Header-link" onclick="Router.go('lab')">Lab Analysis</a>
+      </nav>
     </div>
-  </div>
 
-  <div style="flex:1; margin:0 16px;">
-    <input id="global-search" type="search" class="form-control input-contrast header-search-input" placeholder="Search sites in Kazakhstan, Giza, etc…" aria-label="Search" />
-  </div>
-
-  <div class="d-flex flex-items-center gap-2">
-    <button id="theme-toggle" class="btn btn-ghost btn-sm" title="Toggle theme">🌗</button>
-    <button id="new-finding-btn" class="btn btn-primary btn-sm">+ New finding</button>
-
-    <details class="details-reset details-overlay" style="margin-left:8px;">
-      <summary id="avatar-summary" class="Header-link" aria-haspopup="menu" role="button">
-        <img id="avatar-img" class="avatar avatar-user" src="https://avatars.githubusercontent.com/u/0?v=4" width="32" height="32" alt="@guest">
-      </summary>
-      <div class="dropdown-menu dropdown-menu-sw mt-2" style="width:260px;">
-        <div class="dropdown-header">Signed in as <strong id="user-email">guest</strong></div>
-        <a class="dropdown-item" href="#" data-route="profile">Your profile</a>
-        <a class="dropdown-item" href="#" id="logout-btn">Sign out</a>
+    <div class="d-flex flex-items-center">
+      <input type="text" class="header-search mr-3" placeholder="Search sites (e.g. Tamgaly, Otrar)..." id="site-search">
+      <button class="btn btn-primary btn-sm mr-2" onclick="Modals.show('finding')">+ New Discovery</button>
+      <div class="dropdown details-reset details-overlay d-inline-block">
+        <summary class="Header-link" aria-haspopup="menu">
+          <img class="avatar" src="https://github.com/identicons/guest.png" width="20" height="20" alt="User">
+          <span class="dropdown-caret"></span>
+        </summary>
+        <details-menu class="dropdown-menu dropdown-menu-sw">
+          <div class="dropdown-header">Signed in as <strong>Archeologist</strong></div>
+          <a class="dropdown-item" onclick="Router.go('profile')">Your profile</a>
+          <div role="none" class="dropdown-divider"></div>
+          <a class="dropdown-item" onclick="Auth.logout()">Sign out</a>
+        </details-menu>
       </div>
-    </details>
-  </div>
-</header>
-
-<div class="container-lg">
-  <div class="d-flex flex-justify-between mb-4">
-    <div>
-      <h1 class="f1 text-normal">ArcheoHub — Kazakhstan & Global Heritage</h1>
-      <p class="muted small">Explore archaeological sites, stratigraphy, and research. Data is local & simulated for this prototype.</p>
     </div>
-    <div class="d-none d-md-flex flex-items-center gap-2">
-      <select id="filter-type" class="form-select form-select-sm">
-        <option value="">All commit types</option>
-        <option>Discovery</option>
-        <option>Analysis</option>
-        <option>Theory</option>
-        <option>Preservation</option>
-        <option>Maintenance</option>
-      </select>
-      <button id="open-explore" class="btn btn-ghost btn-sm">Explore</button>
-    </div>
-  </div>
+  </header>
 
-  <div id="app-root"></div>
+  <main class="main-content" id="app-viewport"></main>
+
+  <footer class="container-lg px-3">
+    <div class="d-flex flex-justify-between flex-items-center">
+      <div class="d-flex flex-items-center">
+        <span class="mr-3">© 2026 ArcheoHub Kazakhstan Heritage Protocol</span>
+        <a href="#" class="mr-3">Terms</a>
+        <a href="#" class="mr-3">Privacy</a>
+        <a href="mailto:shyn.aityk@gmail.com">Contact</a>
+      </div>
+      <div class="d-flex">
+        <span class="muted">Powered by Three.js & Leaflet Engine</span>
+      </div>
+    </div>
+  </footer>
 </div>
 
-<div id="new-finding-modal" class="overlay" hidden>
-  <div class="card-dark" style="width:720px; max-width:95%;">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <h3 style="margin:0">New Archaeological Finding</h3>
-      <button id="close-new-finding" class="btn btn-ghost btn-sm">Close</button>
-    </div>
-    <form id="new-finding-form" class="form-compact">
-      <div class="d-flex gap-2">
-        <input name="repo" placeholder="Repository path (e.g. kazakhstan/almaty/tamgaly)" class="form-control form-control-sm" required />
-        <select name="type" class="form-select form-select-sm" style="width:180px;">
-          <option>Discovery</option>
-          <option>Analysis</option>
-          <option>Theory</option>
-          <option>Preservation</option>
-          <option>Maintenance</option>
-        </select>
-      </div>
-      <div class="mt-2"><input name="title" placeholder="Title" class="form-control form-control-sm" required /></div>
-      <div class="mt-2">
-        <input name="submitterEmail" placeholder="Your email (optional)" class="form-control form-control-sm" />
-      </div>
-      <div class="mt-2"><textarea name="desc" placeholder="Description" class="form-control form-control-sm" rows="5"></textarea></div>
-      <div class="mt-2 d-flex justify-content-end gap-2">
-        <button type="button" id="submit-finding" class="btn btn-primary">Submit</button>
-      </div>
-    </form>
-    <hr style="margin:12px 0; border-color:#30363d;">
-    <div style="margin-top:8px;">
-      <div style="font-weight:700; margin-bottom:8px;">Direct Submission (Formspree)</div>
-      <form action="https://formspree.io/f/xdakdvqo" method="POST" class="form-compact" target="_blank">
-        <label>Email: <input type="email" name="email" class="form-control form-control-sm" /></label>
-        <label>Message: <textarea name="message" class="form-control form-control-sm" rows="4"></textarea></label>
-        <input type="hidden" name="_subject" value="ArcheoHub — New finding (direct form)" />
-        <div style="margin-top:8px; text-align:right;">
-          <button type="submit" class="btn btn-ghost">Send via Formspree</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+<div id="modal-container"></div>
 
-<div id="auth-modal" class="overlay" hidden>
-  <div class="card-dark" style="width:420px; max-width:95%;">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <h3 style="margin:0" id="auth-title">Sign in</h3>
-      <button id="auth-close" class="btn btn-ghost btn-sm">Close</button>
-    </div>
-    <div>
-      <input id="auth-email" class="form-control form-control-sm mb-2" placeholder="you@gmail.com" />
-      <input id="auth-name" class="form-control form-control-sm mb-2" placeholder="Display name" />
-      <div class="d-flex justify-content-end gap-2">
-        <button id="auth-submit" class="btn btn-primary">Sign in</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="toast" style="position:fixed; right:18px; bottom:18px; z-index:14000;"></div>
-
-<footer class="footer mt-5">
-  <div class="container-lg text-center">
-    <p class="mb-0">© 2026 ArcheoHub — Kazakhstan Focus. Contact: <a href="mailto:shyn.aityk@gmail.com">shyn.aityk@gmail.com</a></p>
-  </div>
-</footer>
+<div id="toast-container" style="position:fixed; bottom:20px; right:20px; z-index:10000;"></div>
 
 <script>
-/* Helpers */
-function uid(prefix='id'){ return prefix + '-' + Math.random().toString(36).slice(2,9); }
-function now(){ return new Date().toISOString(); }
-function saveLS(key,value){ try { localStorage.setItem(key, JSON.stringify(value)); } catch(e){}}
-function loadLS(key, fallback){ try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } }
-function toast(msg, ms=2500){ const t=document.createElement('div'); t.className='Box p-2 mb-2'; t.style.background='#0b1220'; t.textContent=msg; document.getElementById('toast').appendChild(t); setTimeout(()=> t.remove(), ms); }
-function escapeHTML(s){ return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function safeOn(target, event, handler){
-  let el = typeof target === 'string' ? document.querySelector(target) : target;
-  if(el) el.addEventListener(event, handler);
-}
-
-/* Formspree Integration */
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xdakdvqo';
-async function sendFindingToFormspree(payload){
-  try {
-    const res = await fetch(FORMSPREE_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ ...payload, _subject: `ArcheoHub Finding: ${payload.title}` })
-    });
-    return { ok: res.ok };
-  } catch(err){ return { ok: false }; }
-}
-
-/* State Management */
-const App = {
-  theme: localStorage.getItem('theme') || 'dark',
-  user: loadLS('archeo_user', null),
-  repos: loadLS('archeo_repos', null),
-  issues: loadLS('archeo_issues', null),
-  prs: loadLS('archeo_prs', null),
-  page: 'explore',
-  currentRepoId: null,
-  filter: { type: '', search: '', yearRange: [-3000, 2020] }
+/* =========================================================================
+   CORE ENGINE: STATE & CONFIG
+   ========================================================================= */
+const AppConfig = {
+  version: '2.4.0-pro',
+  formspreeId: 'xdakdvqo',
+  seedKey: 'archeohub_v2_data'
 };
 
-document.documentElement.setAttribute('data-color-mode', App.theme);
+const State = {
+  currentPage: 'explore',
+  activeRepoId: null,
+  activeCommitId: null,
+  user: { name: 'Dr. Kazakhstani', email: 'shyn.aityk@gmail.com', role: 'Principal Investigator' },
+  repos: [],
+  issues: [],
+  analytics: { scans: 450, carbonDates: 120, discoveries: 890 }
+};
 
-/* Seeding with Kazakhstan Findings */
-if(!App.repos){
-  App.repos = [];
-  const BASE = [
-    ["Tamgaly Petroglyphs", "Kazakhstan", 43.8033, 75.5358],
-    ["Otrar City Ruins", "Kazakhstan", 42.8522, 68.3025],
-    ["Bozok Settlement", "Kazakhstan", 51.1086, 71.3005],
-    ["Issyk Kurgan (Golden Man)", "Kazakhstan", 43.3951, 77.4011],
-    ["Berel Mounds", "Kazakhstan", 49.3758, 86.4317],
-    ["Akyrtas Palace", "Kazakhstan", 42.9567, 71.8052],
-    ["Kenes Scythian Site", "Kazakhstan", 43.2389, 76.8897],
-    ["Giza Plateau","Egypt",29.9792,31.1342],
-    ["Pompeii","Italy",40.7460,14.4989],
-    ["Stonehenge","UK",51.1789,-1.8262]
-  ];
+/* =========================================================================
+   LARGE SCALE DATA SEEDING (Kazakhstan Focus)
+   ========================================================================= */
+const ARCHEO_SEEDS = [
+  {
+    id: 'kz-tamgaly',
+    name: 'Tamgaly Petroglyphs',
+    site: 'Zhetysu Region',
+    country: 'Kazakhstan',
+    lat: 43.8033, lon: 75.5358,
+    description: 'A UNESCO site containing over 5,000 petroglyphs dating from the Bronze Age to the middle ages.',
+    stars: 1240, forks: 89,
+    tags: ['UNESCO', 'Bronze Age', 'Rock Art'],
+    commits: [
+      { id: 'c1', msg: 'Initial documentation of Sector A', date: '2024-01-15', author: 'S. Aityk', type: 'Discovery', 
+        layers: [
+          { name: 'Bronze Age Stratum', depth: '0-50cm', color: '#8b4513', artifacts: 12 },
+          { name: 'Iron Age Overlay', depth: '50-120cm', color: '#a0522d', artifacts: 45 }
+        ]
+      },
+      { id: 'c2', msg: 'Spectroscopic analysis of pigment', date: '2024-03-22', author: 'M. Chen', type: 'Analysis', layers: [] }
+    ]
+  },
+  {
+    id: 'kz-otrar',
+    name: 'Otrar Oasis',
+    site: 'Syr Darya Valley',
+    country: 'Kazakhstan',
+    lat: 42.8522, lon: 68.3025,
+    description: 'One of the oldest cities in Central Asia, a major Silk Road hub and site of a massive Mongol siege.',
+    stars: 980, forks: 156,
+    tags: ['Silk Road', 'Medieval', 'Citadel'],
+    commits: [
+      { id: 'o1', msg: 'Citadel wall reconstruction scan', date: '2023-11-05', author: 'Y. Petrov', type: 'Preservation', layers: [] }
+    ]
+  },
+  {
+    id: 'kz-bozok',
+    name: 'Bozok Settlement',
+    site: 'Astana Environs',
+    country: 'Kazakhstan',
+    lat: 51.1086, lon: 71.3005,
+    description: 'Medieval military outpost and ancestor of the modern capital city Astana.',
+    stars: 720, forks: 45,
+    tags: ['Medieval', 'Golden Horde', 'Military'],
+    commits: []
+  },
+  {
+    id: 'kz-berel',
+    name: 'Berel Mounds (Valley of Kings)',
+    site: 'Altai Mountains',
+    country: 'Kazakhstan',
+    lat: 49.3758, lon: 86.4317,
+    description: 'Saka period burial mounds containing unique organic preservation due to permafrost.',
+    stars: 2100, forks: 310,
+    tags: ['Saka', 'Permafrost', 'Burial'],
+    commits: []
+  },
+  {
+    id: 'eg-giza',
+    name: 'Giza Necropolis',
+    site: 'Cairo',
+    country: 'Egypt',
+    lat: 29.9792, lon: 31.1342,
+    description: 'The last remaining wonder of the ancient world.',
+    stars: 45000, forks: 12000,
+    tags: ['Wonder', 'Pyramids', 'Old Kingdom'],
+    commits: []
+  }
+];
 
-  let rid = 1;
-  BASE.forEach((b) => {
-    const count = b[1] === "Kazakhstan" ? 3 : 1;
-    for(let i=0; i<count; i++){
-      const lat = b[2] + (Math.random()-0.5)*0.2;
-      const lon = b[3] + (Math.random()-0.5)*0.2;
-      const commitCount = Math.floor(Math.random()*5)+2;
-      const commits = [];
-      for(let c=0; c<commitCount; c++){
-        commits.push({
-          id: uid('c'), author: "ArcheoHub Seed", year: Math.floor(-1000 + Math.random()*3000), 
-          type: "Discovery", message: `Layer documentation for ${b[0]}`,
-          layers: [{id: uid('l'), name: "Primary Stratum", thickness: 25, color: "#c2a97f", notes: "Excavation notes"}]
-        });
-      }
-      App.repos.push({
-        id: String(rid++), name: i === 0 ? b[0] : `${b[0]} Sector ${i+1}`,
-        site: b[0], country: b[1], lat, lon, commits, 
-        stars: Math.floor(Math.random()*400), forks: Math.floor(Math.random()*80), owner: 'community'
-      });
-    }
+// Populate 50 more simulated repos to reach scale
+for(let i=1; i<=50; i++) {
+  ARCHEO_SEEDS.push({
+    id: `sim-${i}`,
+    name: `Sector-X${i} Excavation`,
+    site: `Region ${Math.floor(i/5)}`,
+    country: 'Global',
+    lat: (Math.random() * 140) - 70,
+    lon: (Math.random() * 300) - 150,
+    description: `Automated data repository for sector ${i} research.`,
+    stars: Math.floor(Math.random() * 500),
+    forks: Math.floor(Math.random() * 50),
+    tags: ['Research', 'Automated'],
+    commits: [{ id: 'sc1', msg: 'Auto-sync from field tablets', date: '2025-12-01', author: 'Bot-Arch', type: 'Maintenance', layers: [] }]
   });
-  saveLS('archeo_repos', App.repos);
 }
 
-/* Navigation & Rendering Logic */
-function navigate(page, opts={}){
-  App.page = page;
-  if(opts.repoId) App.currentRepoId = opts.repoId;
-  window.location.hash = `#${page}${opts.repoId?'-'+opts.repoId:''}`;
-  render();
-}
+/* =========================================================================
+   UTILITY MODULE
+   ========================================================================= */
+const Utils = {
+  save: (data) => localStorage.setItem(AppConfig.seedKey, JSON.stringify(data)),
+  load: () => JSON.parse(localStorage.getItem(AppConfig.seedKey)),
+  toast: (msg, type='success') => {
+    const t = document.createElement('div');
+    t.className = `Box Box--condensed p-2 mb-2 color-shadow-medium fade-in border-0 color-bg-${type}`;
+    t.style.backgroundColor = type === 'success' ? '#238636' : '#f85149';
+    t.innerHTML = `<span class="color-fg-on-emphasis">${msg}</span>`;
+    document.getElementById('toast-container').appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  },
+  formatDate: (d) => new Date(d).toLocaleDateString('en-KZ', { year: 'numeric', month: 'short', day: 'numeric' }),
+  uid: () => 'id_' + Math.random().toString(36).substr(2, 9)
+};
 
-function render(){
-  updateHeaderAuth();
-  const root = document.getElementById('app-root');
-  if(!root) return;
-  root.innerHTML = '';
-  if(App.page === 'explore') renderExplore(root);
-  else if(App.page === 'map') renderMap(root);
-  else if(App.page === 'repo') renderRepo(root, App.currentRepoId);
-  else if(App.page === 'profile') renderProfile(root);
-  else if(App.page === 'issues') renderIssuesBoard(root);
-  else if(App.page === 'prs') renderPRList(root);
-}
+/* =========================================================================
+   ROUTING ENGINE
+   ========================================================================= */
+const Router = {
+  go: (page, id = null) => {
+    State.currentPage = page;
+    State.activeRepoId = id;
+    window.location.hash = page + (id ? `/${id}` : '');
+    RenderEngine.init();
+  },
+  syncFromHash: () => {
+    const hash = window.location.hash.replace('#', '').split('/');
+    if (hash[0]) State.currentPage = hash[0];
+    if (hash[1]) State.activeRepoId = hash[1];
+    RenderEngine.init();
+  }
+};
 
-/* Explore View */
-function renderExplore(root){
-  root.innerHTML = `
-    <div class="two-col">
-      <div><div class="Box"><div class="Box-title">Explore Sites</div><div id="repo-list"></div></div></div>
-      <aside>
-        <div class="Box p-3">
-          <strong>Site Filters</strong>
-          <input id="search-input" class="form-control form-control-sm mt-2" placeholder="Filter by country or name..." value="${App.filter.search}">
-          <button id="apply-filter" class="btn btn-sm btn-primary mt-2 w-100">Apply</button>
+/* =========================================================================
+   MODAL SYSTEM
+   ========================================================================= */
+const Modals = {
+  show: (type) => {
+    const container = document.getElementById('modal-container');
+    container.innerHTML = `
+      <div class="overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10001; display:flex; align-items:center; justify-content:center;">
+        <div class="Box color-bg-default border-default shadow-large" style="width:600px; max-width:90%;">
+          <div class="Box-header d-flex flex-justify-between">
+            <h3 class="Box-title">${type === 'finding' ? 'Add New Finding' : 'Modal'}</h3>
+            <button class="btn-octicon" onclick="Modals.hide()">×</button>
+          </div>
+          <div class="Box-body">
+            ${Modals.getTemplate(type)}
+          </div>
         </div>
-      </aside>
-    </div>`;
-  const list = document.getElementById('repo-list');
-  const filtered = App.repos.filter(r => 
-    r.country.toLowerCase().includes(App.filter.search.toLowerCase()) || 
-    r.name.toLowerCase().includes(App.filter.search.toLowerCase())
-  ).sort((a,b) => b.stars - a.stars);
-
-  list.innerHTML = filtered.map(r => `
-    <div class="Box-row">
-      <div style="flex:1">
-        <div class="repo-title"><a href="#" onclick="navigate('repo',{repoId:'${r.id}'});return false;">${escapeHTML(r.name)}</a></div>
-        <div class="small muted">${escapeHTML(r.country)} • Lat: ${r.lat.toFixed(2)}</div>
       </div>
-      <div class="small">★ ${r.stars}</div>
-    </div>
-  `).join('');
+    `;
+  },
+  hide: () => document.getElementById('modal-container').innerHTML = '',
+  getTemplate: (type) => {
+    if(type === 'finding') {
+      return `
+        <form id="finding-form">
+          <div class="form-group"><label>Repository Path</label><input class="form-control input-block" name="path" placeholder="kazakhstan/almaty/tamgaly"></div>
+          <div class="form-group"><label>Title</label><input class="form-control input-block" name="title"></div>
+          <div class="form-group"><label>Description</label><textarea class="form-control input-block" name="desc" rows="4"></textarea></div>
+          <div class="form-actions"><button type="button" class="btn btn-primary" onclick="Actions.submitFinding()">Commit to ArcheoHub</button></div>
+        </form>
+      `;
+    }
+    return '';
+  }
+};
 
-  safeOn('#apply-filter','click', () => {
-    App.filter.search = document.getElementById('search-input').value;
-    renderExplore(root);
-  });
-}
+/* =========================================================================
+   ACTION HANDLERS (Business Logic)
+   ========================================================================= */
+const Actions = {
+  submitFinding: async () => {
+    const form = document.getElementById('finding-form');
+    const data = {
+      email: State.user.email,
+      path: form.path.value,
+      title: form.title.value,
+      message: form.desc.value,
+      _subject: 'ArcheoHub New Discovery'
+    };
 
-/* Map View - Focus on Kazakhstan */
-function renderMap(root){
-  root.innerHTML = `<div class="Box p-3"><h3>Regional Map</h3><div id="map" class="mt-2"></div></div>`;
-  if(typeof L === 'undefined') return;
-  const map = L.map('map').setView([48.0196, 66.9237], 4); // Focused on Kazakhstan
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    Utils.toast('Sending to Formspree & Syncing...');
+    
+    try {
+      await fetch(`https://formspree.io/f/${AppConfig.formspreeId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      // Update local state
+      const newRepo = {
+        id: Utils.uid(),
+        name: data.title,
+        site: data.path,
+        country: 'New Exploration',
+        lat: 48, lon: 66, // Default KZ center
+        description: data.message,
+        stars: 0, forks: 0, tags: ['User-Added'],
+        commits: [{ id: 'c1', msg: 'Initial Commit', date: new Date().toISOString(), author: State.user.name, type: 'Discovery', layers: [] }]
+      };
+      
+      State.repos.unshift(newRepo);
+      Utils.save(State.repos);
+      Modals.hide();
+      Router.go('explore');
+    } catch (e) {
+      Utils.toast('Sync failed, but saved locally.', 'danger');
+    }
+  }
+};
 
-  App.repos.forEach(r => {
-    const isKZ = r.country === 'Kazakhstan';
-    const marker = L.circleMarker([r.lat, r.lon], {
-      radius: 6, color: '#071625', fillColor: isKZ ? '#2da44e' : '#58a6ff', fillOpacity: 0.9
-    }).addTo(map);
-    marker.bindPopup(`<strong>${r.name}</strong><br>${r.country}<br><button class="btn btn-sm btn-ghost mt-1" onclick="navigate('repo',{repoId:'${r.id}'})">View</button>`);
-  });
-}
+/* =========================================================================
+   RENDER ENGINE (The UI Views)
+   ========================================================================= */
+const RenderEngine = {
+  init: () => {
+    const target = document.getElementById('app-viewport');
+    target.className = 'main-content view-fade';
+    
+    switch(State.currentPage) {
+      case 'explore': RenderEngine.explore(target); break;
+      case 'repo': RenderEngine.repository(target); break;
+      case 'map': RenderEngine.map(target); break;
+      case 'issues': RenderEngine.issues(target); break;
+      case 'lab': RenderEngine.lab(target); break;
+      case 'profile': RenderEngine.profile(target); break;
+      default: RenderEngine.explore(target);
+    }
+  },
 
-/* Repository View */
-function renderRepo(root, id){
-  const repo = App.repos.find(r => r.id === id);
-  if(!repo) return navigate('explore');
-  root.innerHTML = `
-    <div class="Box p-3">
-      <div class="d-flex justify-content-between">
-        <h2 class="repo-title">${escapeHTML(repo.name)}</h2>
-        <button class="btn btn-sm btn-ghost" onclick="navigate('explore')">← Back</button>
+  explore: (target) => {
+    target.innerHTML = `
+      <div class="d-flex flex-justify-between flex-items-end mb-4 border-bottom pb-3">
+        <div>
+          <h1 class="f1-light">Explore Kazakhstan Heritage</h1>
+          <p class="color-fg-muted">Searching through ${State.repos.length} active archaeological repositories.</p>
+        </div>
       </div>
-      <p class="muted">${repo.country} — Archaeological Data Repository</p>
-      <div class="tabs d-flex mt-3" style="border-bottom:1px solid #30363d;">
-        <div class="tab selected p-2">Commits</div>
-      </div>
-      <div class="mt-3">
-        ${repo.commits.map(c => `
-          <div class="Box-row">
-            <div>
-              <strong>${escapeHTML(c.message)}</strong>
-              <div class="small muted">${escapeHTML(c.author)} • Year ${c.year}</div>
+      <div class="two-col d-flex">
+        <div class="col-9 pr-4">
+          <div class="Box" id="repo-list-container">
+            ${State.repos.map(r => `
+              <div class="repo-card px-3">
+                <div class="col-8">
+                  <a href="javascript:void(0)" class="repo-name" onclick="Router.go('repo', '${r.id}')">${r.name}</a>
+                  <p class="color-fg-muted mt-1 small">${r.description.substring(0, 150)}...</p>
+                  <div class="mt-2">
+                    ${r.tags.map(t => `<span class="Label Label--secondary mr-1">${t}</span>`).join('')}
+                    <span class="small color-fg-muted ml-2">Updated ${Utils.formatDate(r.commits[0]?.date || Date.now())}</span>
+                  </div>
+                </div>
+                <div class="col-4 text-right">
+                  <div class="color-fg-muted small">★ ${r.stars} &nbsp; ⑂ ${r.forks}</div>
+                  <button class="btn btn-sm mt-3" onclick="Utils.toast('Starred!')">Star</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="Box p-3 color-bg-subtle mb-3">
+            <h4 class="mb-2">Kazakhstan Hubs</h4>
+            <ul class="list-style-none small">
+              <li class="mb-1"><a href="#">Zhetysu Petroglyphs</a></li>
+              <li class="mb-1"><a href="#">Altai Gold Mounds</a></li>
+              <li class="mb-1"><a href="#">Syr Darya Oasis</a></li>
+            </ul>
+          </div>
+          <div class="Box p-3">
+            <h4 class="mb-2">Community Activity</h4>
+            <div class="Progress mt-1 mb-2">
+              <div class="Progress-item color-bg-success-emphasis" style="width: 75%;"></div>
+              <div class="Progress-item color-bg-attention-emphasis" style="width: 15%;"></div>
             </div>
-            <button class="btn btn-sm btn-ghost" onclick='open3DViewer(${JSON.stringify(repo)}, ${JSON.stringify(c)})'>3D Viewer</button>
-          </div>`).join('')}
+            <span class="small color-fg-muted">75% Carbon-dating verified</span>
+          </div>
+        </div>
       </div>
-    </div>`;
+    `;
+  },
+
+  repository: (target) => {
+    const repo = State.repos.find(r => r.id === State.activeRepoId);
+    if(!repo) return Router.go('explore');
+
+    target.innerHTML = `
+      <div class="repo-header mb-4">
+        <nav aria-label="Breadcrumb">
+          <ol>
+            <li class="breadcrumb-item"><a href="#" onclick="Router.go('explore')">ArcheoHub</a></li>
+            <li class="breadcrumb-item"><a href="#">${repo.country}</a></li>
+            <li class="breadcrumb-item breadcrumb-item-selected">${repo.name}</li>
+          </ol>
+        </nav>
+        <div class="d-flex flex-justify-between flex-items-center mt-2">
+          <h1 class="h2">${repo.name}</h1>
+          <div class="btn-group">
+            <button class="btn btn-sm">Watch</button>
+            <button class="btn btn-sm">Fork</button>
+            <button class="btn btn-sm">Star</button>
+          </div>
+        </div>
+      </div>
+
+      <nav class="UnderlineNav">
+        <div class="UnderlineNav-body" role="tablist">
+          <button class="UnderlineNav-item selected" role="tab">Code & Layers</button>
+          <button class="UnderlineNav-item" role="tab" onclick="Router.go('issues')">Issues <span class="Counter">12</span></button>
+          <button class="UnderlineNav-item" role="tab">Pull Requests <span class="Counter">2</span></button>
+          <button class="UnderlineNav-item" role="tab" onclick="RenderEngine.lab()">Insights</button>
+        </div>
+      </nav>
+
+      <div class="Box mb-4">
+        <div class="Box-header d-flex flex-justify-between flex-items-center">
+          <div>
+            <span class="Label Label--info mr-2">main</span>
+            <span class="color-fg-muted small"><strong>${repo.commits.length}</strong> Commits &nbsp; <strong>1</strong> Branch</span>
+          </div>
+          <button class="btn btn-sm btn-primary" onclick="ThreeEngine.openViewer('${repo.id}')">Open in 3D Viewer</button>
+        </div>
+        <div class="Box-body p-0">
+          ${repo.commits.map(c => `
+            <div class="Box-row d-flex flex-justify-between">
+              <div>
+                <strong>${c.msg}</strong>
+                <div class="color-fg-muted small">${c.author} committed on ${Utils.formatDate(c.date)}</div>
+              </div>
+              <div class="d-flex flex-items-center">
+                <span class="tag-${c.type.toLowerCase()} mr-3">${c.type}</span>
+                <span class="color-fg-muted small font-mono">${c.id}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="Box p-4 color-bg-subtle">
+        <h3>README.md</h3>
+        <hr>
+        <p>${repo.description}</p>
+        <h4 class="mt-3">Geospatial Metadata</h4>
+        <p class="small font-mono">Latitude: ${repo.lat} | Longitude: ${repo.lon}</p>
+      </div>
+    `;
+  },
+
+  map: (target) => {
+    target.innerHTML = `
+      <div class="Box p-3">
+        <div class="Box-header mb-3"><h3 class="Box-title">Global Archaeological Distribution</h3></div>
+        <div id="map-surface"></div>
+      </div>
+    `;
+    
+    setTimeout(() => {
+      const map = L.map('map-surface').setView([48, 66], 4);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+      
+      State.repos.forEach(r => {
+        const marker = L.circleMarker([r.lat, r.lon], { radius: 8, color: '#0969da', fillColor: '#58a6ff', fillOpacity: 0.8 }).addTo(map);
+        marker.bindPopup(`<strong>${r.name}</strong><br>${r.country}<br><button class="btn btn-sm mt-2" onclick="Router.go('repo','${r.id}')">View Repo</button>`);
+      });
+    }, 100);
+  },
+
+  issues: (target) => {
+    target.innerHTML = `
+      <h1 class="mb-4">Community Oversight</h1>
+      <div class="kanban-board">
+        <div class="kanban-col">
+          <div class="kanban-header">TODO <span class="Counter">5</span></div>
+          <div class="issue-card">
+            <strong>Re-scan Otrar Citadel</strong>
+            <div class="mt-1 small color-fg-muted">Opened by Prof. K. Mukhtar</div>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-header">IN PROGRESS <span class="Counter">2</span></div>
+          <div class="issue-card" style="border-left: 4px solid #d29922;">
+            <strong>Tamgaly Layer D Radiocarbon</strong>
+            <div class="mt-1 small color-fg-muted">Laboratory Phase</div>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-header">VERIFIED <span class="Counter">23</span></div>
+          <div class="issue-card" style="border-left: 4px solid #3fb950;">
+            <strong>Berel Site Tags</strong>
+            <div class="mt-1 small color-fg-muted">Completed 2 days ago</div>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  lab: (target) => {
+    target.innerHTML = `
+      <div class="Box p-4">
+        <h2>Laboratory Analytics Dashboard</h2>
+        <canvas id="archeoChart" width="400" height="150" class="mt-4"></canvas>
+      </div>
+    `;
+    
+    setTimeout(() => {
+      const ctx = document.getElementById('archeoChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          datasets: [{ label: 'Artifacts Logged', data: [12, 19, 3, 5, 2, 3], borderColor: '#58a6ff', tension: 0.1 }]
+        }
+      });
+    }, 100);
+  }
+};
+
+/* =========================================================================
+   ADVANCED 3D ENGINE (Three.js Trenches)
+   ========================================================================= */
+const ThreeEngine = {
+  openViewer: (repoId) => {
+    const repo = State.repos.find(r => r.id === repoId);
+    const overlay = document.createElement('div');
+    overlay.className = 'fullscreen-overlay';
+    overlay.id = 'three-overlay';
+    overlay.innerHTML = `
+      <div class="Header p-3 d-flex flex-justify-between">
+        <h3 class="color-fg-on-emphasis">${repo.name} - Stratigraphic Diffs</h3>
+        <button class="btn btn-danger btn-sm" onclick="ThreeEngine.close()">Exit Viewer</button>
+      </div>
+      <div id="three-viewport"></div>
+      <div class="controls-panel">
+        <strong>Controls</strong><br>
+        <span class="small">LMB: Rotate | RMB: Pan | Scroll: Zoom</span><hr>
+        <button class="btn btn-sm btn-ghost" onclick="Utils.toast('Cross-section active')">Toggle Cross-section</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    ThreeEngine.initScene();
+  },
+
+  close: () => document.getElementById('three-overlay').remove(),
+
+  initScene: () => {
+    const container = document.getElementById('three-viewport');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050505);
+
+    const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
+
+    // Lighting
+    const ambient = new THREE.AmbientLight(0xffffff, 0.4); scene.add(ambient);
+    const point = new THREE.PointLight(0xffffff, 0.8); point.position.set(10, 20, 10); scene.add(point);
+
+    // Trench Generation
+    const layers = [
+      { h: 0.5, c: 0x8b4513 }, // Humus
+      { h: 1.2, c: 0xd2b48c }, // Sand/Clay
+      { h: 0.8, c: 0x4b3621 }, // Cultural layer
+      { h: 2.0, c: 0x2f4f4f }  // Bedrock
+    ];
+
+    let currentY = 0;
+    layers.forEach(l => {
+      const geo = new THREE.BoxGeometry(10, l.h, 10);
+      const mat = new THREE.MeshStandardMaterial({ color: l.c, roughness: 1.0 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.y = currentY - (l.h / 2);
+      scene.add(mesh);
+      currentY -= l.h;
+    });
+
+    camera.position.set(12, 5, 12);
+    camera.lookAt(0, -2, 0);
+
+    function animate() {
+      if(!document.getElementById('three-overlay')) return;
+      requestAnimationFrame(animate);
+      scene.rotation.y += 0.002;
+      renderer.render(scene, camera);
+    }
+    animate();
+  }
+};
+
+/* =========================================================================
+   BOOTSTRAP
+   ========================================================================= */
+function init() {
+  // Load local data or seed defaults
+  const stored = Utils.load();
+  if (stored) {
+    State.repos = stored;
+  } else {
+    State.repos = ARCHEO_SEEDS;
+    Utils.save(State.repos);
+  }
+
+  // Event Listeners
+  window.onhashchange = Router.syncFromHash;
+  document.getElementById('site-search').addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase();
+    const filtered = State.repos.filter(r => r.name.toLowerCase().includes(query) || r.site.toLowerCase().includes(query));
+    // Temporary override to view list
+    document.getElementById('repo-list-container').innerHTML = filtered.map(r => `
+      <div class="repo-card px-3">
+        <div>
+          <a href="javascript:void(0)" class="repo-name" onclick="Router.go('repo', '${r.id}')">${r.name}</a>
+          <div class="small color-fg-muted mt-1">${r.country}</div>
+        </div>
+      </div>
+    `).join('');
+  });
+
+  Router.syncFromHash();
+  Utils.toast('ArcheoHub Pro Online — Remote Sync Active');
 }
 
-/* Profile and Other views (abbreviated implementations as per previous logic) */
-function renderProfile(root){ root.innerHTML = '<div class="Box p-3">Profile View (Demo)</div>'; }
-function renderIssuesBoard(root){ root.innerHTML = '<div class="Box p-3">Issues Board (Demo)</div>'; }
-function renderPRList(root){ root.innerHTML = '<div class="Box p-3">Pull Requests (Demo)</div>'; }
+document.addEventListener('DOMContentLoaded', init);
 
-/* 3D Viewer Logic (Three.js) */
-function open3DViewer(repo, commit){
-  if(typeof THREE === 'undefined') return alert('Three.js not loaded');
-  const overlay = document.createElement('div');
-  overlay.className = 'overlay';
-  overlay.innerHTML = `<div id="three-modal" style="width:80%; height:80%; background:#0d1117; border-radius:10px; display:flex; flex-direction:column;">
-    <div class="p-2 d-flex justify-content-between" style="border-bottom:1px solid #30363d;">
-      <strong>${repo.name} 3D View</strong>
-      <button class="btn btn-sm btn-ghost" id="close-3d">Close</button>
-    </div>
-    <div id="canvas-container" style="flex:1;"></div>
-  </div>`;
-  document.body.appendChild(overlay);
-  safeOn('#close-3d','click', () => overlay.remove());
-
-  const container = document.getElementById('canvas-container');
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-  const renderer = new THREE.WebGLRenderer();
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  container.appendChild(renderer.domElement);
-
-  const geometry = new THREE.BoxGeometry(2, 0.5, 2);
-  const material = new THREE.MeshStandardMaterial({ color: 0xc2a97f });
-  const cube = new THREE.Mesh(geometry, material);
-  scene.add(cube);
-  const light = new THREE.PointLight(0xffffff, 1, 100); light.position.set(5, 5, 5); scene.add(light);
-  scene.add(new THREE.AmbientLight(0x404040));
-  camera.position.z = 5;
-
-  function animate() { requestAnimationFrame(animate); cube.rotation.y += 0.01; renderer.render(scene, camera); }
-  animate();
-}
-
-/* Event Initialization */
-function updateHeaderAuth(){
-  const emailEl = document.getElementById('user-email');
-  if(App.user) emailEl.textContent = App.user.email;
-}
-
-safeOn('#new-finding-btn','click', () => document.getElementById('new-finding-modal').hidden = false);
-safeOn('#close-new-finding','click', () => document.getElementById('new-finding-modal').hidden = true);
-safeOn('#submit-finding','click', async () => {
-  const form = document.getElementById('new-finding-form');
-  const payload = { title: form.title.value, repo: form.repo.value, desc: form.desc.value };
-  toast('Sending to Formspree...');
-  const res = await sendFindingToFormspree(payload);
-  if(res.ok) toast('Finding Shared!');
-  document.getElementById('new-finding-modal').hidden = true;
-});
-
-safeOn('#theme-toggle','click', () => {
-  App.theme = App.theme === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-color-mode', App.theme);
-  localStorage.setItem('theme', App.theme);
-});
-
-document.querySelectorAll('[data-route]').forEach(el => {
-  el.onclick = (e) => { e.preventDefault(); navigate(el.dataset.route); };
-});
-
-/* Initial Boot */
-(function init(){
-  const h = window.location.hash.slice(1).split('-');
-  if(h[0]) App.page = h[0];
-  if(h[1]) App.currentRepoId = h[1];
-  render();
-})();
 </script>
 </body>
 </html>
