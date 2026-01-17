@@ -5,99 +5,140 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ArcheoHub — Global Archaeological Collaboration Platform</title>
 
-  <!-- Primer CSS -->
   <link rel="stylesheet" href="https://unpkg.com/@primer/css@^21.0.0/dist/primer.css">
-
-  <!-- Leaflet for maps -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- noUiSlider for timeline -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
-
-  <!-- Three.js for 3D stratigraphy viewer -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
   <style>
+    /* ========================================================================
+       GLOBAL VARIABLES & RESET
+       ======================================================================== */
     :root { 
       --accent-primary: #238636; 
       --accent-secondary: #58a6ff;
+      --accent-tertiary: #d29922;
       --muted: #8b949e; 
       --bg-primary: #0d1117;
       --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
       --border: #30363d;
+      --border-hover: #484f58;
       --text-primary: #c9d1d9;
       --text-bright: #f0f6fc;
+      --text-muted: #7d8590;
       --danger: #da3633;
       --warning: #d29922;
       --success: #2da44e;
+      --info: #1f6feb;
       --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.25);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.35);
+      --shadow-xl: 0 20px 40px rgba(0,0,0,0.5);
     }
     
-    * { box-sizing: border-box; }
-    
-    body { 
-      background-color: var(--bg-primary);
-      color: var(--text-primary);
-      font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    * { 
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
     
-    /* Enhanced Header */
+    body { 
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    
+    /* ========================================================================
+       HEADER & NAVIGATION
+       ======================================================================== */
     header.Header { 
       background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(22,27,34,0.95) 100%);
       border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
       position: sticky;
       top: 0;
       z-index: 1000;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: var(--shadow-md);
     }
     
     .brand { 
       font-weight: 800;
-      font-size: 1.25rem;
-      margin-right: 16px;
+      font-size: 1.35rem;
+      margin-right: 20px;
       background: linear-gradient(135deg, #58a6ff 0%, #238636 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       letter-spacing: -0.5px;
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    .brand:hover {
+      opacity: 0.8;
     }
     
     .Header-link { 
       color: var(--text-primary);
       margin-right: 16px;
-      padding: 8px 12px;
+      padding: 8px 14px;
       border-radius: 6px;
       transition: var(--transition);
       font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
     }
     
     .Header-link:hover { 
       color: var(--text-bright);
-      background: rgba(88,166,255,0.1);
+      background: rgba(88,166,255,0.12);
       text-decoration: none;
+      transform: translateY(-1px);
     }
     
-    /* Enhanced Form Controls */
-    .form-control.input-contrast, .form-select { 
+    .Header-link.active {
+      background: rgba(88,166,255,0.15);
+      color: var(--text-bright);
+    }
+    
+    /* ========================================================================
+       FORM CONTROLS
+       ======================================================================== */
+    .form-control, .form-select { 
       background: var(--bg-primary);
       color: var(--text-primary);
       border: 1px solid var(--border);
       border-radius: 6px;
       transition: var(--transition);
+      padding: 8px 12px;
+      font-size: 14px;
     }
     
-    .form-control:focus, .form-select:focus {
+    .form-control:focus, .form-select:focus { 
       border-color: var(--accent-secondary);
       outline: none;
-      box-shadow: 0 0 0 3px rgba(88,166,255,0.1);
+      box-shadow: 0 0 0 3px rgba(88,166,255,0.12);
+      background: var(--bg-secondary);
     }
     
-    /* Enhanced Box Component */
+    .form-control:hover, .form-select:hover {
+      border-color: var(--border-hover);
+    }
+    
+    .form-control::placeholder {
+      color: var(--text-muted);
+    }
+    
+    /* ========================================================================
+       BOX COMPONENT
+       ======================================================================== */
     .Box { 
       background: var(--bg-primary);
       border: 1px solid var(--border);
@@ -106,56 +147,113 @@
       transition: var(--transition);
     }
     
-    .Box:hover {
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    .Box:hover { 
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-hover);
     }
     
     .Box-row { 
       border-top: 1px solid var(--border);
-      padding: 16px;
+      padding: 16px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       transition: var(--transition);
     }
     
-    .Box-row:first-child { border-top: 0; }
+    .Box-row:first-child { 
+      border-top: 0;
+    }
     
-    .Box-row:hover {
-      background: rgba(88,166,255,0.03);
+    .Box-row:hover { 
+      background: rgba(88,166,255,0.04);
     }
     
     .Box-title { 
       color: var(--text-bright);
-      padding: 16px;
-      font-size: 1.1rem;
+      padding: 16px 20px;
+      font-size: 1.15rem;
       font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .Box-header {
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(88,166,255,0.05) 0%, rgba(35,134,54,0.05) 100%);
       border-bottom: 1px solid var(--border);
     }
     
-    /* Enhanced Labels */
+    /* ========================================================================
+       LABELS & BADGES
+       ======================================================================== */
     .Label { 
-      font-size: 12px;
+      font-size: 11px;
       padding: 4px 10px;
       border-radius: 12px;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.5px;
+      display: inline-block;
     }
     
-    .Label--orange { background: #6f4a2e; color: #fff; }
-    .Label--blue { background: #0969da; color: #fff; }
-    .Label--green { background: var(--success); color: #fff; }
-    .Label--purple { background: #8250df; color: #fff; }
-    .Label--red { background: var(--danger); color: #fff; }
-    .Label--yellow { background: var(--warning); color: #000; }
+    .Label--discovery { background: rgba(88,166,255,0.2); color: #58a6ff; }
+    .Label--analysis { background: rgba(210,153,34,0.2); color: #d29922; }
+    .Label--theory { background: rgba(163,113,247,0.2); color: #a371f7; }
+    .Label--preservation { background: rgba(45,164,78,0.2); color: #2da44e; }
+    .Label--maintenance { background: rgba(138,148,158,0.2); color: #8a949e; }
     
-    /* Enhanced Buttons */
-    .btn {
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(88,166,255,0.15);
+      color: var(--accent-secondary);
+    }
+    
+    .region-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    
+    .region-central-asia { background: rgba(255,193,7,0.2); color: #ffc107; }
+    .region-east-asia { background: rgba(244,67,54,0.2); color: #f44336; }
+    .region-southeast-asia { background: rgba(156,39,176,0.2); color: #9c27b0; }
+    .region-south-asia { background: rgba(233,30,99,0.2); color: #e91e63; }
+    .region-middle-east { background: rgba(255,152,0,0.2); color: #ff9800; }
+    .region-africa { background: rgba(121,85,72,0.2); color: #795548; }
+    .region-europe { background: rgba(33,150,243,0.2); color: #2196f3; }
+    .region-north-america { background: rgba(76,175,80,0.2); color: #4caf50; }
+    .region-south-america { background: rgba(205,220,57,0.2); color: #cddc39; }
+    .region-central-america { background: rgba(139,195,74,0.2); color: #8bc34a; }
+    .region-oceania { background: rgba(0,188,212,0.2); color: #00bcd4; }
+    
+    /* ========================================================================
+       BUTTONS
+       ======================================================================== */
+    .btn { 
       border-radius: 6px;
       font-weight: 500;
       transition: var(--transition);
       cursor: pointer;
+      border: 1px solid transparent;
+      padding: 6px 16px;
+      font-size: 14px;
+      display: inline-block;
+      text-decoration: none;
+      user-select: none;
+    }
+    
+    .btn:active {
+      transform: scale(0.98);
     }
     
     .btn-primary { 
@@ -164,10 +262,22 @@
       color: #fff;
     }
     
-    .btn-primary:hover {
+    .btn-primary:hover { 
       background: #2ea043;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(46,160,67,0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(46,160,67,0.35);
+    }
+    
+    .btn-secondary {
+      background: var(--accent-secondary);
+      border-color: var(--accent-secondary);
+      color: #fff;
+    }
+    
+    .btn-secondary:hover {
+      background: #6cb6ff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(88,166,255,0.35);
     }
     
     .btn-ghost { 
@@ -176,126 +286,254 @@
       color: var(--text-primary);
     }
     
-    .btn-ghost:hover {
+    .btn-ghost:hover { 
       background: rgba(88,166,255,0.1);
       border-color: var(--accent-secondary);
+      color: var(--text-bright);
     }
     
-    /* Footer */
-    footer.footer { 
-      color: var(--muted);
-      border-top: 1px solid var(--border);
-      padding: 32px 0;
-      margin-top: 64px;
-      background: var(--bg-secondary);
+    .btn-danger {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: #fff;
     }
     
-    /* Layout */
+    .btn-danger:hover {
+      background: #e5534b;
+      transform: translateY(-2px);
+    }
+    
+    .btn-sm {
+      padding: 4px 12px;
+      font-size: 13px;
+    }
+    
+    /* ========================================================================
+       LAYOUT
+       ======================================================================== */
     .container-lg { 
-      max-width: 1280px;
+      max-width: 1320px;
       margin: 0 auto;
-      padding: 24px;
+      padding: 28px 24px;
     }
     
     .two-col { 
       display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 24px;
+      grid-template-columns: 1fr 400px;
+      gap: 28px;
     }
     
-    @media (max-width:1000px){ 
+    .three-col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    
+    @media (max-width: 1200px) { 
       .two-col { 
         grid-template-columns: 1fr;
       }
+      
+      .three-col {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
     
-    /* Enhanced Map */
+    @media (max-width: 768px) {
+      .three-col {
+        grid-template-columns: 1fr;
+      }
+      
+      .container-lg {
+        padding: 20px 16px;
+      }
+    }
+    
+    /* ========================================================================
+       MAP STYLES
+       ======================================================================== */
     #map { 
-      height: 600px;
+      height: 650px;
       border-radius: 12px;
       border: 1px solid var(--border);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      box-shadow: var(--shadow-lg);
+      z-index: 1;
     }
     
-    /* Repository Cards */
-    .repo-card {
+    .leaflet-popup-content-wrapper {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border-radius: 8px;
+      box-shadow: var(--shadow-xl);
+    }
+    
+    .leaflet-popup-tip {
+      background: var(--bg-secondary);
+    }
+    
+    /* ========================================================================
+       REPOSITORY CARDS
+       ======================================================================== */
+    .repo-card { 
       transition: var(--transition);
       cursor: pointer;
+      position: relative;
     }
     
-    .repo-card:hover {
+    .repo-card:hover { 
       transform: translateX(4px);
+    }
+    
+    .repo-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--accent-secondary), var(--accent-primary));
+      opacity: 0;
+      transition: var(--transition);
+    }
+    
+    .repo-card:hover::before {
+      opacity: 1;
     }
     
     .repo-title { 
       font-weight: 700;
       color: var(--accent-secondary);
-      font-size: 1.05rem;
-    }
-    
-    .repo-title:hover {
-      text-decoration: underline;
-    }
-    
-    .muted { color: var(--muted); }
-    .text-bright { color: var(--text-bright); }
-    
-    /* Stats Cards */
-    .stat-card {
-      background: linear-gradient(135deg, rgba(88,166,255,0.1) 0%, rgba(35,134,54,0.1) 100%);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
+      font-size: 1.1rem;
       transition: var(--transition);
     }
     
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(88,166,255,0.2);
+    .repo-title:hover { 
+      text-decoration: underline;
+      color: #6cb6ff;
     }
     
-    .stat-number {
-      font-size: 2.5rem;
+    .repo-description {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+    
+    .repo-meta {
+      display: flex;
+      gap: 16px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    
+    .repo-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    /* ========================================================================
+       STATISTICS CARDS
+       ======================================================================== */
+    .stat-card { 
+      background: linear-gradient(135deg, rgba(88,166,255,0.08) 0%, rgba(35,134,54,0.08) 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(88,166,255,0.1) 0%, transparent 70%);
+      opacity: 0;
+      transition: var(--transition);
+    }
+    
+    .stat-card:hover::before {
+      opacity: 1;
+    }
+    
+    .stat-card:hover { 
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--accent-secondary);
+    }
+    
+    .stat-number { 
+      font-size: 2.75rem;
       font-weight: 800;
       background: linear-gradient(135deg, #58a6ff 0%, #238636 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      line-height: 1.2;
     }
     
-    .stat-label {
-      font-size: 0.9rem;
-      color: var(--muted);
+    .stat-label { 
+      font-size: 0.95rem;
+      color: var(--text-muted);
       margin-top: 8px;
       text-transform: uppercase;
       letter-spacing: 1px;
+      font-weight: 600;
     }
     
-    /* Timeline */
-    #timeline { margin-top: 16px; }
+    /* ========================================================================
+       TIMELINE
+       ======================================================================== */
+    #timeline { 
+      margin-top: 20px;
+    }
     
-    .noUi-connect {
+    .noUi-target {
+      background: var(--bg-tertiary);
+      border-color: var(--border);
+    }
+    
+    .noUi-connect { 
       background: linear-gradient(90deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
     }
     
-    /* Modal Overlay */
+    .noUi-handle {
+      background: var(--bg-secondary);
+      border-color: var(--accent-secondary);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .noUi-handle:hover {
+      transform: scale(1.1);
+    }
+    
+    /* ========================================================================
+       MODALS & OVERLAYS
+       ======================================================================== */
     .overlay { 
       position: fixed;
       left: 0;
       top: 0;
       right: 0;
       bottom: 0;
-      background: rgba(2,6,23,0.92);
-      backdrop-filter: blur(4px);
+      background: rgba(2,6,23,0.94);
+      backdrop-filter: blur(6px);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 12000;
       animation: fadeIn 0.2s ease;
+      padding: 20px;
     }
     
-    @keyframes fadeIn {
+    @keyframes fadeIn { 
       from { opacity: 0; }
       to { opacity: 1; }
     }
@@ -305,94 +543,153 @@
       border: 1px solid var(--border);
       color: var(--text-primary);
       border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      padding: 28px;
+      box-shadow: var(--shadow-xl);
       animation: slideUp 0.3s ease;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
     }
     
-    @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+    @keyframes slideUp { 
+      from { 
+        transform: translateY(30px);
+        opacity: 0;
+      }
+      to { 
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
     
-    /* Tabs */
+    /* ========================================================================
+       TABS
+       ======================================================================== */
     .tabs { 
       display: flex;
       border-bottom: 2px solid var(--border);
       padding: 0;
+      gap: 4px;
     }
     
     .tabs .tab { 
       cursor: pointer;
       padding: 12px 20px;
       border-radius: 6px 6px 0 0;
-      margin: 0 4px -2px 0;
+      margin: 0 0 -2px 0;
       font-weight: 500;
       transition: var(--transition);
       border-bottom: 2px solid transparent;
+      color: var(--text-muted);
     }
     
-    .tabs .tab:hover {
-      background: rgba(88,166,255,0.05);
+    .tabs .tab:hover { 
+      background: rgba(88,166,255,0.06);
+      color: var(--text-primary);
     }
     
     .tabs .tab.selected { 
-      background: rgba(88,166,255,0.1);
+      background: rgba(88,166,255,0.12);
       border-bottom-color: var(--accent-secondary);
       color: var(--text-bright);
     }
     
-    /* Contribution List */
-    .contrib-list { display: grid; gap: 12px; }
-    
-    /* Form Styling */
-    .form-compact label {
-      display: block;
-      margin-bottom: 12px;
-      font-weight: 500;
-    }
-    
-    .form-compact input,
-    .form-compact textarea,
-    .form-compact select {
-      width: 100%;
-      box-sizing: border-box;
-      margin-top: 6px;
-    }
-    
-    /* Toast Notifications */
+    /* ========================================================================
+       TOAST NOTIFICATIONS
+       ======================================================================== */
     #toast { 
       position: fixed;
       right: 24px;
       bottom: 24px;
       z-index: 14000;
+      max-width: 400px;
     }
     
-    .toast-item {
+    .toast-item { 
       background: var(--bg-secondary);
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 16px 20px;
       margin-bottom: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      box-shadow: var(--shadow-xl);
       animation: slideInRight 0.3s ease;
       min-width: 300px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
     
-    @keyframes slideInRight {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
+    .toast-item::before {
+      content: '✓';
+      width: 24px;
+      height: 24px;
+      background: var(--accent-primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-weight: bold;
     }
     
-    /* Loading Spinner */
-    .spinner {
+    @keyframes slideInRight { 
+      from { 
+        transform: translateX(120%);
+        opacity: 0;
+      }
+      to { 
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    /* ========================================================================
+       FOOTER
+       ======================================================================== */
+    footer { 
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+      margin-top: 80px;
+      background: var(--bg-secondary);
+    }
+    
+    footer a {
+      color: var(--accent-secondary);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    
+    footer a:hover {
+      text-decoration: underline;
+      color: #6cb6ff;
+    }
+    
+    /* ========================================================================
+       UTILITY CLASSES
+       ======================================================================== */
+    .muted { color: var(--text-muted); }
+    .text-bright { color: var(--text-bright); }
+    .small { font-size: 13px; }
+    .mt-1 { margin-top: 4px; }
+    .mt-2 { margin-top: 8px; }
+    .mt-3 { margin-top: 16px; }
+    .mt-4 { margin-top: 24px; }
+    .mb-1 { margin-bottom: 4px; }
+    .mb-2 { margin-bottom: 8px; }
+    .mb-3 { margin-bottom: 16px; }
+    .mb-4 { margin-bottom: 24px; }
+    .p-3 { padding: 16px; }
+    .p-4 { padding: 24px; }
+    
+    .loading-spinner {
       border: 3px solid var(--border);
       border-top: 3px solid var(--accent-secondary);
       border-radius: 50%;
       width: 40px;
       height: 40px;
       animation: spin 1s linear infinite;
-      margin: 20px auto;
+      margin: 40px auto;
     }
     
     @keyframes spin {
@@ -400,29 +697,59 @@
       100% { transform: rotate(360deg); }
     }
     
-    /* Badge */
-    .badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-      background: rgba(88,166,255,0.2);
-      color: var(--accent-secondary);
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
     }
     
-    /* Search Highlight */
-    .search-highlight {
-      background: rgba(210,153,34,0.2);
-      padding: 2px 4px;
-      border-radius: 3px;
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: 16px;
+      opacity: 0.5;
     }
     
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      .brand { font-size: 1rem; }
-      .stat-number { font-size: 2rem; }
-      #map { height: 400px; }
+    /* ========================================================================
+       3D VIEWER STYLES
+       ======================================================================== */
+    #three-canvas {
+      position: relative;
+      background: linear-gradient(180deg, #05060a 0%, #0d1117 100%);
+    }
+    
+    .viewer-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(22,27,34,0.95);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      gap: 12px;
+      z-index: 10;
+    }
+    
+    /* ========================================================================
+       SCROLLBAR
+       ======================================================================== */
+    ::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 6px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--border-hover);
     }
   </style>
 </head>
@@ -430,33 +757,22 @@
 
 <header class="Header d-flex flex-justify-between flex-items-center p-3">
   <div class="d-flex flex-items-center">
-    <a class="brand" href="#" data-route="explore">🏛️ ArcheoHub</a>
+    <div class="brand" onclick="navigate('explore')">🏛️ ArcheoHub</div>
     <div class="d-none d-md-block">
-      <a class="Header-link" href="#" data-route="explore">Explore</a>
-      <a class="Header-link" href="#" data-route="map">Global Map</a>
-      <a class="Header-link" href="#" data-route="issues">Issues</a>
-      <a class="Header-link" href="#" data-route="prs">Pull Requests</a>
+      <a class="Header-link" id="nav-explore" onclick="navigate('explore')">Explore</a>
+      <a class="Header-link" id="nav-map" onclick="navigate('map')">Global Map</a>
+      <a class="Header-link" id="nav-issues" onclick="navigate('issues')">Issues</a>
+      <a class="Header-link" id="nav-prs" onclick="navigate('prs')">Pull Requests</a>
     </div>
   </div>
 
-  <div style="flex:1; margin:0 16px; max-width: 600px;">
-    <input id="global-search" type="search" class="form-control input-contrast header-search-input" placeholder="🔍 Search sites, repos, commits..." aria-label="Search" />
+  <div style="flex:1; margin:0 20px; max-width: 600px;">
+    <input id="global-search" type="search" class="form-control" placeholder="🔍 Search archaeological sites, countries, regions..." />
   </div>
 
   <div class="d-flex flex-items-center gap-2">
-    <button id="theme-toggle" class="btn btn-ghost btn-sm" title="Toggle theme">🌗</button>
-    <button id="new-finding-btn" class="btn btn-primary btn-sm">+ New Finding</button>
-
-    <details class="details-reset details-overlay" style="margin-left:8px;">
-      <summary id="avatar-summary" class="Header-link" aria-haspopup="menu" role="button" style="cursor: pointer;">
-        <img id="avatar-img" class="avatar avatar-user" src="https://avatars.githubusercontent.com/u/0?v=4" width="32" height="32" alt="@guest">
-      </summary>
-      <div class="dropdown-menu dropdown-menu-sw mt-2" style="width:260px;">
-        <div class="dropdown-header">Signed in as <strong id="user-email">guest</strong></div>
-        <a class="dropdown-item" href="#" data-route="profile">Your Profile</a>
-        <a class="dropdown-item" href="#" id="logout-btn">Sign Out</a>
-      </div>
-    </details>
+    <button class="btn btn-primary btn-sm" onclick="showNewFindingModal()">+ New Finding</button>
+    <img id="avatar-img" class="avatar" src="https://avatars.githubusercontent.com/u/0?v=4" width="36" height="36" style="cursor:pointer; border-radius: 50%;" onclick="navigate('profile')">
   </div>
 </header>
 
@@ -465,17 +781,23 @@
 </div>
 
 <!-- New Finding Modal -->
-<div id="new-finding-modal" class="overlay" hidden>
-  <div class="card-dark" style="width:720px; max-width:95%;">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3 style="margin:0">📋 New Archaeological Finding</h3>
-      <button id="close-new-finding" class="btn btn-ghost btn-sm">✕</button>
+<div id="new-finding-modal" class="overlay" style="display:none;">
+  <div class="card-dark" style="width:800px; max-width:95%;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 style="margin:0; font-size: 1.5rem;">📋 Submit New Archaeological Finding</h2>
+      <button class="btn btn-ghost btn-sm" onclick="closeNewFindingModal()">✕ Close</button>
     </div>
     
-    <form id="new-finding-form" class="form-compact">
-      <div class="d-flex gap-2">
-        <input name="repo" placeholder="Repository path (e.g. asia/kazakhstan/tamgaly)" class="form-control form-control-sm" required />
-        <select name="type" class="form-select form-select-sm" style="width:180px;">
+    <div class="form-compact">
+      <div class="mb-3">
+        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Repository Path</label>
+        <input id="repo-input" placeholder="e.g., asia/kazakhstan/tamgaly" class="form-control" />
+        <div class="small muted mt-1">Format: region/country/site-name</div>
+      </div>
+      
+      <div class="mb-3">
+        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Finding Type</label>
+        <select id="type-input" class="form-select">
           <option>Discovery</option>
           <option>Analysis</option>
           <option>Theory</option>
@@ -484,59 +806,48 @@
         </select>
       </div>
       
-      <div class="mt-2">
-        <input name="title" placeholder="Title of finding" class="form-control form-control-sm" required />
-      </div>
-
-      <div class="mt-2">
-        <input name="submitterEmail" placeholder="Your email (optional)" class="form-control form-control-sm" />
-      </div>
-
-      <div class="mt-2">
-        <textarea name="desc" placeholder="Description" class="form-control form-control-sm" rows="5"></textarea>
+      <div class="mb-3">
+        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Title</label>
+        <input id="title-input" placeholder="Brief title of your finding" class="form-control" />
       </div>
       
-      <div class="mt-3 d-flex justify-content-end gap-2">
-        <button type="button" id="submit-finding" class="btn btn-primary">Submit Finding</button>
+      <div class="mb-3">
+        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Your Email (Optional)</label>
+        <input id="email-input" type="email" placeholder="your@email.com" class="form-control" />
       </div>
-    </form>
-
-    <hr style="margin:16px 0; border-color:var(--border);">
-    
-    <div style="margin-top:12px;">
-      <div style="font-weight:700; margin-bottom:8px;">📧 Send Direct Message</div>
-      <form action="https://formspree.io/f/xdakdvqo" method="POST" class="form-compact" target="_blank">
-        <label>
-          Your email:
-          <input type="email" name="email" class="form-control form-control-sm" />
-        </label>
-        <label>
-          Your message:
-          <textarea name="message" class="form-control form-control-sm" rows="4"></textarea>
-        </label>
-        <input type="hidden" name="_subject" value="ArcheoHub — New finding (direct form)" />
-        <div style="margin-top:12px; text-align:right;">
-          <button type="submit" class="btn btn-ghost">Send via Formspree</button>
-        </div>
-      </form>
+      
+      <div class="mb-3">
+        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Detailed Description</label>
+        <textarea id="desc-input" placeholder="Provide detailed information about your finding..." class="form-control" rows="6"></textarea>
+      </div>
+      
+      <div class="d-flex justify-content-end gap-2">
+        <button class="btn btn-ghost" onclick="closeNewFindingModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitFinding()">Submit Finding</button>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- Auth Modal -->
-<div id="auth-modal" class="overlay" hidden>
-  <div class="card-dark" style="width:420px; max-width:95%;">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3 style="margin:0" id="auth-title">🔐 Sign In</h3>
-      <button id="auth-close" class="btn btn-ghost btn-sm">✕</button>
+<div id="auth-modal" class="overlay" style="display:none;">
+  <div class="card-dark" style="width:480px; max-width:95%;">
+    <h2 style="margin-bottom: 20px;">🔐 Sign In to ArcheoHub</h2>
+    <div class="small muted mb-3">Demo authentication - data stored locally</div>
+    
+    <div class="mb-3">
+      <label style="display: block; margin-bottom: 8px; font-weight: 600;">Email Address</label>
+      <input id="auth-email" type="email" class="form-control" placeholder="your@email.com" />
     </div>
-    <div>
-      <div class="mb-2 small muted" id="auth-note">Use any email address for demo sign-in (local only).</div>
-      <input id="auth-email" class="form-control form-control-sm mb-2" placeholder="you@email.com" />
-      <input id="auth-name" class="form-control form-control-sm mb-2" placeholder="Display name (optional)" />
-      <div class="d-flex justify-content-end gap-2 mt-3">
-        <button id="auth-submit" class="btn btn-primary">Sign In</button>
-      </div>
+    
+    <div class="mb-3">
+      <label style="display: block; margin-bottom: 8px; font-weight: 600;">Display Name (Optional)</label>
+      <input id="auth-name" class="form-control" placeholder="Your name" />
+    </div>
+    
+    <div class="d-flex justify-content-end gap-2">
+      <button class="btn btn-ghost" onclick="closeAuthModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="doSignIn()">Sign In</button>
     </div>
   </div>
 </div>
@@ -544,129 +855,77 @@
 <!-- Toast Container -->
 <div id="toast"></div>
 
-<footer class="footer mt-5">
+<footer>
   <div class="container-lg text-center">
-    <p class="mb-0">© 2026 ArcheoHub — Global Archaeological Collaboration Platform</p>
-    <p class="small muted">Contact: <a href="mailto:shyn.aityk@gmail.com" style="color: var(--accent-secondary);">shyn.aityk@gmail.com</a></p>
+    <p style="margin-bottom: 8px; font-size: 15px;">© 2026 ArcheoHub — Global Archaeological Collaboration Platform</p>
+    <p class="small muted">Connecting archaeologists worldwide | Contact: <a href="mailto:shyn.aityk@gmail.com">shyn.aityk@gmail.com</a></p>
+    <div class="mt-3">
+      <span class="small muted">Built with ❤️ for the archaeological community</span>
+    </div>
   </div>
 </footer>
 
 <script>
 /* ============================================================================
-   ARCHEOHUB - ENHANCED GLOBAL ARCHAEOLOGICAL PLATFORM
-   
-   Core Features:
-   - Global archaeological site database with Kazakhstan focus
-   - Interactive mapping with Leaflet
-   - Git-like version control for excavation data
-   - 3D stratigraphy visualization with Three.js
-   - Issue tracking and pull requests
-   - Timeline filtering and data export
+   ARCHEOHUB - COMPREHENSIVE ARCHAEOLOGICAL COLLABORATION PLATFORM
    ============================================================================ */
 
 // ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
 
-/**
- * Generate unique identifier with prefix
- * @param {string} prefix - Prefix for the ID
- * @returns {string} Unique ID
- */
-function uid(prefix='id'){ 
-  return prefix + '-' + Math.random().toString(36).slice(2,11) + Date.now().toString(36);
+function uid(prefix = 'id') {
+  const timestamp = Date.now().toString(36);
+  const randomStr = Math.random().toString(36).slice(2, 11);
+  return `${prefix}-${randomStr}-${timestamp}`;
 }
 
-/**
- * Get current ISO timestamp
- * @returns {string} ISO timestamp
- */
-function now(){ 
+function now() {
   return new Date().toISOString();
 }
 
-/**
- * Save data to localStorage with error handling
- * @param {string} key - Storage key
- * @param {*} value - Value to store
- */
-function saveLS(key, value){ 
-  try { 
+function saveLS(key, value) {
+  try {
     localStorage.setItem(key, JSON.stringify(value));
-  } catch(e){ 
-    console.warn('localStorage save error:', e);
-    toast('⚠️ Storage limit reached', 3000);
+  } catch (error) {
+    console.warn('LocalStorage save error:', error);
+    toast('⚠️ Unable to save data - storage limit may be reached');
   }
 }
 
-/**
- * Load data from localStorage with fallback
- * @param {string} key - Storage key
- * @param {*} fallback - Fallback value
- * @returns {*} Stored value or fallback
- */
-function loadLS(key, fallback){ 
-  try{ 
-    const v = localStorage.getItem(key);
-    return v ? JSON.parse(v) : fallback;
-  } catch(e){ 
-    console.warn('localStorage load error:', e);
+function loadLS(key, fallback) {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch (error) {
+    console.warn('LocalStorage load error:', error);
     return fallback;
   }
 }
 
-/**
- * Display toast notification
- * @param {string} msg - Message to display
- * @param {number} ms - Duration in milliseconds
- */
-function toast(msg, ms=3000){ 
-  const t = document.createElement('div');
-  t.className = 'toast-item';
-  t.textContent = msg;
-  document.getElementById('toast').appendChild(t);
+function toast(message, duration = 3000) {
+  const toastContainer = document.getElementById('toast');
+  const toastElement = document.createElement('div');
+  toastElement.className = 'toast-item';
+  toastElement.textContent = message;
+  
+  toastContainer.appendChild(toastElement);
+  
   setTimeout(() => {
-    t.style.animation = 'slideInRight 0.3s ease reverse';
-    setTimeout(() => t.remove(), 300);
-  }, ms);
+    toastElement.style.animation = 'slideInRight 0.3s ease reverse';
+    setTimeout(() => toastElement.remove(), 300);
+  }, duration);
 }
 
-/**
- * Safely attach event listener
- * @param {string|HTMLElement} target - Element or selector
- * @param {string} event - Event name
- * @param {Function} handler - Event handler
- */
-function safeOn(target, event, handler){
-  if(!target) return;
-  let el = typeof target === 'string' ? document.querySelector(target) : target;
-  if(el && typeof el.addEventListener === 'function') {
-    el.addEventListener(event, handler);
-  }
+function escapeHTML(str) {
+  if (str === null || str === undefined) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
-/**
- * Escape HTML to prevent XSS
- * @param {string} s - String to escape
- * @returns {string} Escaped string
- */
-function escapeHTML(s){
-  if (s === null || s === undefined) return '';
-  return String(s)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#039;');
-}
-
-/**
- * Format number with commas
- * @param {number} num - Number to format
- * @returns {string} Formatted number
- */
 function formatNumber(num) {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 // ============================================================================
@@ -675,40 +934,38 @@ function formatNumber(num) {
 
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xdakdvqo';
 
-/**
- * Send finding data to Formspree
- * @param {Object} payload - Finding data
- * @returns {Promise<Object>} Response object
- */
-async function sendFindingToFormspree(payload){
+async function sendFindingToFormspree(payload) {
   try {
-    const res = await fetch(FORMSPREE_ENDPOINT, {
+    const response = await fetch(FORMSPREE_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
       body: JSON.stringify({
-        email: payload.email || '',
+        email: payload.email || 'noreply@archeohub.org',
         repo: payload.repoPath,
         type: payload.type,
         title: payload.title,
         message: payload.desc,
         author: payload.author,
         time: payload.time,
-        _subject: `ArcheoHub — New finding: ${payload.title}`,
+        _subject: `ArcheoHub New Finding: ${payload.title}`,
         _replyto: payload.email || ''
       })
     });
     
-    if(res.ok) return { ok: true };
+    if (response.ok) {
+      return { ok: true };
+    }
     
-    const text = await res.text().catch(() => null);
-    console.warn('Formspree response not ok', res.status, text);
-    return { ok: false, status: res.status, text };
-  } catch(err){
-    console.error('sendFindingToFormspree error', err);
-    return { ok: false, error: String(err) };
+    const errorText = await response.text().catch(() => null);
+    console.warn('Formspree error:', response.status, errorText);
+    return { ok: false, status: response.status, text: errorText };
+    
+  } catch (error) {
+    console.error('Formspree request failed:', error);
+    return { ok: false, error: String(error) };
   }
 }
 
@@ -717,55 +974,779 @@ async function sendFindingToFormspree(payload){
 // ============================================================================
 
 const App = {
-  theme: localStorage.getItem('theme') || 'dark',
-  user: loadLS('archeo_user', null),
-  repos: loadLS('archeo_repos', null),
-  issues: loadLS('archeo_issues', null),
-  prs: loadLS('archeo_prs', null),
+  user: loadLS('archeohub_user', null),
+  repos: loadLS('archeohub_repos', null),
+  issues: loadLS('archeohub_issues', null),
+  prs: loadLS('archeohub_prs', null),
   page: 'explore',
   currentRepoId: null,
-  filter: { 
-    type: '', 
-    search: '', 
+  filter: {
+    type: '',
+    search: '',
     yearRange: [-10000, 2026],
-    region: ''
-  }
+    region: '',
+    country: ''
+  },
+  mapInstance: null,
+  sliderInstance: null
 };
 
-document.documentElement.setAttribute('data-color-mode', App.theme);
-
 // ============================================================================
-// DATA SEEDING - COMPREHENSIVE GLOBAL ARCHAEOLOGICAL SITES
+// GLOBAL ARCHAEOLOGICAL SITES DATABASE
 // ============================================================================
 
-if(!App.repos){
+if (!App.repos) {
   App.repos = [];
   
-  /**
-   * Comprehensive global archaeological sites database
-   * Format: [Name, Country, Region, Lat, Lon, Period, Description]
-   */
-  const GLOBAL_SITES = [
-    // KAZAKHSTAN (Central Asia)
-    ["Tamgaly Petroglyphs", "Kazakhstan", "Central Asia", 43.8056, 75.5386, "Bronze Age", "UNESCO World Heritage petroglyphs from 2nd millennium BCE"],
-    ["Otrar Ancient City", "Kazakhstan", "Central Asia", 42.9000, 68.3167, "Medieval", "Major Silk Road city, birthplace of Al-Farabi"],
-    ["Bozok Ancient Settlement", "Kazakhstan", "Central Asia", 51.1801, 71.4460, "Medieval", "Medieval settlement near modern Astana"],
-    ["Taraz Archaeological Complex", "Kazakhstan", "Central Asia", 42.9000, 71.3667, "Medieval", "Ancient Silk Road city dating to 6th century"],
-    ["Almaty Kurgan Burial Mounds", "Kazakhstan", "Central Asia", 43.2220, 76.8512, "Iron Age", "Scythian-Saka burial mounds"],
-    ["Berel Burial Mounds", "Kazakhstan", "Central Asia", 49.3333, 86.0833, "Iron Age", "Scythian royal burials with preserved horses"],
-    ["Issyk Kurgan", "Kazakhstan", "Central Asia", 43.3500, 77.4333, "Iron Age", "Golden Warrior discovery site"],
+  const ARCHAEOLOGICAL_SITES = [
+    // KAZAKHSTAN - Central Asia
+    ["Tamgaly Petroglyphs", "Kazakhstan", "Central Asia", 43.8056, 75.5386, "Bronze Age", "UNESCO World Heritage site with 5,000 petroglyphs from 2nd millennium BCE"],
+    ["Otrar Ancient City", "Kazakhstan", "Central Asia", 42.9000, 68.3167, "Medieval", "Major Silk Road trading hub, birthplace of philosopher Al-Farabi"],
+    ["Bozok Settlement", "Kazakhstan", "Central Asia", 51.1801, 71.4460, "Medieval", "Medieval settlement near modern Astana, capital city archaeology"],
+    ["Taraz Archaeological Complex", "Kazakhstan", "Central Asia", 42.9000, 71.3667, "Medieval", "Ancient Silk Road city dating to 6th century CE"],
+    ["Berel Burial Mounds", "Kazakhstan", "Central Asia", 49.3333, 86.0833, "Iron Age", "Scythian royal burials with preserved horses and artifacts"],
+    ["Issyk Kurgan", "Kazakhstan", "Central Asia", 43.3500, 77.4333, "Iron Age", "Discovery site of the famous Golden Warrior"],
     ["Akyrtas Palace Complex", "Kazakhstan", "Central Asia", 42.7833, 73.6167, "Medieval", "Mysterious medieval palace ruins"],
-    ["Sauran Fortress", "Kazakhstan", "Central Asia", 42.3167, 68.6500, "Medieval", "Medieval fortress on the Silk Road"],
-    ["Merke Settlement", "Kazakhstan", "Central Asia", 42.8833, 73.1667, "Bronze Age", "Bronze Age settlement"],
+    ["Sauran Fortress", "Kazakhstan", "Central Asia", 42.3167, 68.6500, "Medieval", "Medieval fortress city on the Silk Road"],
     
-    // EGYPT
-    ["Giza Plateau", "Egypt", "Africa", 29.9792, 31.1342, "Old Kingdom", "Great Pyramids and Sphinx complex"],
+    // EGYPT - Africa
+    ["Giza Pyramid Complex", "Egypt", "Africa", 29.9792, 31.1342, "Old Kingdom", "Great Pyramids of Khufu, Khafre, and Menkaure"],
     ["Valley of the Kings", "Egypt", "Africa", 25.7402, 32.6014, "New Kingdom", "Royal tombs including Tutankhamun"],
     ["Karnak Temple Complex", "Egypt", "Africa", 25.7188, 32.6573, "Middle Kingdom", "Largest ancient religious site"],
-    ["Abu Simbel", "Egypt", "Africa", 22.3372, 31.6258, "New Kingdom", "Rock temples of Ramesses II"],
-    ["Saqqara Necropolis", "Egypt", "Africa", 29.8711, 31.2169, "Old Kingdom", "Step Pyramid of Djoser"],
+    ["Abu Simbel Temples", "Egypt", "Africa", 22.3372, 31.6258, "New Kingdom", "Rock-cut temples of Ramesses II"],
     
-    // ITALY
-    ["Pompeii", "Italy", "Europe", 40.7460, 14.4989, "Roman", "Preserved Roman city from 79 CE eruption"],
-    ["Roman Forum", "Italy", "Europe", 41.8925, 12.4853, "Roman", "Center of ancient Rome"],
-    ["Herculaneum", "Italy", "Europe", 40
+    // ITALY - Europe
+    ["Pompeii", "Italy", "Europe", 40.7460, 14.4989, "Roman", "City preserved by Mount Vesuvius eruption in 79 CE"],
+    ["Roman Forum", "Italy", "Europe", 41.8925, 12.4853, "Roman", "Political and commercial heart of ancient Rome"],
+    ["Colosseum", "Italy", "Europe", 41.8902, 12.4922, "Roman", "Largest ancient amphitheater"],
+    ["Herculaneum", "Italy", "Europe", 40.8061, 14.3484, "Roman", "Roman town preserved by Vesuvius"],
+    
+    // GREECE - Europe
+    ["Acropolis of Athens", "Greece", "Europe", 37.9715, 23.7267, "Classical", "Ancient citadel with Parthenon"],
+    ["Delphi Oracle Site", "Greece", "Europe", 38.4824, 22.5010, "Classical", "Pan-Hellenic sanctuary and oracle"],
+    ["Ancient Olympia", "Greece", "Europe", 37.6379, 21.6300, "Classical", "Birthplace of Olympic Games"],
+    ["Knossos Palace", "Greece", "Europe", 35.2979, 25.1632, "Bronze Age", "Largest Bronze Age Minoan palace"],
+    
+    // UNITED KINGDOM - Europe
+    ["Stonehenge", "UK", "Europe", 51.1789, -1.8262, "Neolithic", "Prehistoric monument with standing stones"],
+    ["Hadrian's Wall", "UK", "Europe", 55.0240, -2.2910, "Roman", "Roman frontier fortification"],
+    ["Bath Roman Complex", "UK", "Europe", 51.3811, -2.3590, "Roman", "Roman spa and temple complex"],
+    
+    // TURKEY - Middle East
+    ["Göbekli Tepe", "Turkey", "Middle East", 37.2231, 38.9226, "Neolithic", "World's oldest known temple complex, 10,000 BCE"],
+    ["Troy Archaeological Site", "Turkey", "Middle East", 39.9577, 26.2390, "Bronze Age", "Legendary city of Homer's Iliad"],
+    ["Ephesus Ancient City", "Turkey", "Middle East", 37.9390, 27.3409, "Greek-Roman", "Major Greek-Roman city"],
+    ["Çatalhöyük", "Turkey", "Middle East", 37.6678, 32.8278, "Neolithic", "One of world's oldest towns"],
+    
+    // JORDAN - Middle East
+    ["Petra", "Jordan", "Middle East", 30.3285, 35.4444, "Nabataean", "Rock-cut capital city of Nabataean Kingdom"],
+    ["Jerash Roman City", "Jordan", "Middle East", 32.2811, 35.8911, "Roman", "Well-preserved Roman provincial city"],
+    
+    // IRAN - Middle East
+    ["Persepolis", "Iran", "Middle East", 29.9344, 52.8910, "Persian", "Ceremonial capital of Achaemenid Empire"],
+    ["Pasargadae", "Iran", "Middle East", 30.2000, 53.1667, "Persian", "First capital of Achaemenid Empire"],
+    
+    // IRAQ - Middle East
+    ["Babylon Ancient City", "Iraq", "Middle East", 32.5425, 44.4200, "Mesopotamian", "Ancient city, Hanging Gardens site"],
+    ["Ur Ziggurat", "Iraq", "Middle East", 30.9625, 46.1031, "Sumerian", "Well-preserved Sumerian ziggurat"],
+    
+    // CAMBODIA - Southeast Asia
+    ["Angkor Wat", "Cambodia", "Southeast Asia", 13.4125, 103.8667, "Medieval", "Largest religious monument"],
+    ["Angkor Thom", "Cambodia", "Southeast Asia", 13.4412, 103.8586, "Medieval", "Last capital of Khmer Empire"],
+    
+    // INDONESIA - Southeast Asia
+    ["Borobudur Temple", "Indonesia", "Southeast Asia", -7.6079, 110.2038, "Medieval", "Largest Buddhist temple"],
+    ["Prambanan Temple", "Indonesia", "Southeast Asia", -7.7520, 110.4915, "Medieval", "Hindu temple compound"],
+    
+    // CHINA - East Asia
+    ["Terracotta Army", "China", "East Asia", 34.3847, 109.2734, "Imperial", "Thousands of life-size terracotta warriors"],
+    ["Great Wall of China", "China", "East Asia", 40.4319, 116.5704, "Imperial", "Ancient defensive fortification"],
+    ["Forbidden City", "China", "East Asia", 39.9163, 116.3972, "Imperial", "Chinese imperial palace complex"],
+    
+    // INDIA - South Asia
+    ["Taj Mahal", "India", "South Asia", 27.1751, 78.0421, "Mughal", "White marble mausoleum"],
+    ["Ajanta Caves", "India", "South Asia", 20.5519, 75.7033, "Buddhist", "Buddhist rock-cut cave temples"],
+    ["Hampi Ruins", "India", "South Asia", 15.3350, 76.4600, "Medieval", "Ruins of Vijayanagara Empire"],
+    
+    // PAKISTAN - South Asia
+    ["Mohenjo-daro", "Pakistan", "South Asia", 27.3244, 68.1378, "Bronze Age", "Major city of Indus Valley Civilization"],
+    ["Harappa", "Pakistan", "South Asia", 30.6283, 72.8650, "Bronze Age", "Indus Valley Civilization city"],
+    
+    // PERU - South America
+    ["Machu Picchu", "Peru", "South America", -13.1631, -72.5450, "Inca", "Inca citadel in Andes Mountains"],
+    ["Nazca Lines", "Peru", "South America", -14.7390, -75.1300, "Pre-Columbian", "Ancient geoglyphs visible from air"],
+    ["Caral-Supe", "Peru", "South America", -10.8933, -77.5200, "Pre-Columbian", "Oldest known civilization in Americas"],
+    
+    // MEXICO - North America
+    ["Teotihuacan", "Mexico", "North America", 19.6925, -98.8438, "Pre-Columbian", "Ancient Mesoamerican city"],
+    ["Chichen Itza", "Mexico", "North America", 20.6843, -88.5678, "Maya", "Maya city with El Castillo pyramid"],
+    ["Palenque", "Mexico", "North America", 17.4840, -92.0456, "Maya", "Maya city-state in Chiapas"],
+    
+    // GUATEMALA - Central America
+    ["Tikal National Park", "Guatemala", "Central America", 17.2220, -89.6237, "Maya", "Major Maya city with towering temples"],
+    
+    // USA - North America
+    ["Mesa Verde", "USA", "North America", 37.1853, -108.4887, "Pre-Columbian", "Ancestral Puebloan cliff dwellings"],
+    ["Cahokia Mounds", "USA", "North America", 38.6551, -90.0628, "Pre-Columbian", "Largest pre-Columbian city north of Mexico"],
+    
+    // ETHIOPIA - Africa
+    ["Lalibela Rock Churches", "Ethiopia", "Africa", 12.0332, 39.0472, "Medieval", "Monolithic rock-cut churches"],
+    ["Aksum Obelisks", "Ethiopia", "Africa", 14.1333, 38.7167, "Ancient", "Ancient kingdom capital with giant stelae"],
+  ];
+
+  // Convert to repo objects
+  ARCHAEOLOGICAL_SITES.forEach(site => {
+    const [name, country, region, lat, lon, period, description] = site;
+    const repoPath = `${region.toLowerCase().replace(/ /g, '-')}/${country.toLowerCase().replace(/ /g, '-')}/${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+    
+    App.repos.push({
+      id: uid('repo'),
+      path: repoPath,
+      name: name,
+      country: country,
+      region: region,
+      lat: lat,
+      lon: lon,
+      period: period,
+      description: description,
+      stars: Math.floor(Math.random() * 500) + 10,
+      language: period,
+      updatedAt: now(),
+      createdAt: now()
+    });
+  });
+  
+  saveLS('archeohub_repos', App.repos);
+}
+
+// Initialize issues and PRs
+if (!App.issues) {
+  App.issues = [];
+  
+  // Generate sample issues
+  const issueTemplates = [
+    { title: "New pottery fragments discovered in Layer 3", type: "Discovery" },
+    { title: "Carbon dating results inconsistent", type: "Analysis" },
+    { title: "Stratigraphy analysis needed for western sector", type: "Analysis" },
+    { title: "Protective covering damaged by weather", type: "Preservation" },
+    { title: "Request for ground-penetrating radar survey", type: "Theory" },
+  ];
+  
+  for (let i = 0; i < 20; i++) {
+    const template = issueTemplates[i % issueTemplates.length];
+    const repo = App.repos[Math.floor(Math.random() * App.repos.length)];
+    
+    App.issues.push({
+      id: uid('issue'),
+      repoId: repo.id,
+      repoPath: repo.path,
+      title: template.title,
+      type: template.type,
+      author: 'researcher' + (i % 5 + 1),
+      state: Math.random() > 0.3 ? 'open' : 'closed',
+      comments: Math.floor(Math.random() * 15),
+      createdAt: now()
+    });
+  }
+  
+  saveLS('archeohub_issues', App.issues);
+}
+
+if (!App.prs) {
+  App.prs = [];
+  
+  // Generate sample pull requests
+  const prTemplates = [
+    { title: "Add 3D photogrammetry models", type: "Discovery" },
+    { title: "Update excavation progress report", type: "Analysis" },
+    { title: "Revise dating estimates based on new data", type: "Theory" },
+    { title: "Add conservation treatment documentation", type: "Preservation" },
+  ];
+  
+  for (let i = 0; i < 15; i++) {
+    const template = prTemplates[i % prTemplates.length];
+    const repo = App.repos[Math.floor(Math.random() * App.repos.length)];
+    
+    App.prs.push({
+      id: uid('pr'),
+      repoId: repo.id,
+      repoPath: repo.path,
+      title: template.title,
+      type: template.type,
+      author: 'researcher' + (i % 5 + 1),
+      state: Math.random() > 0.4 ? 'open' : 'merged',
+      reviews: Math.floor(Math.random() * 8),
+      createdAt: now()
+    });
+  }
+  
+  saveLS('archeohub_prs', App.prs);
+}
+
+// ============================================================================
+// NAVIGATION
+// ============================================================================
+
+function navigate(page) {
+  App.page = page;
+  
+  // Update nav active state
+  document.querySelectorAll('.Header-link').forEach(link => {
+    link.classList.remove('active');
+  });
+  const navLink = document.getElementById('nav-' + page);
+  if (navLink) navLink.classList.add('active');
+  
+  render();
+}
+
+function viewRepo(repoId) {
+  App.currentRepoId = repoId;
+  App.page = 'repo-detail';
+  render();
+}
+
+// ============================================================================
+// MODALS
+// ============================================================================
+
+function showNewFindingModal() {
+  document.getElementById('new-finding-modal').style.display = 'flex';
+}
+
+function closeNewFindingModal() {
+  document.getElementById('new-finding-modal').style.display = 'none';
+  document.getElementById('repo-input').value = '';
+  document.getElementById('type-input').value = 'Discovery';
+  document.getElementById('title-input').value = '';
+  document.getElementById('email-input').value = '';
+  document.getElementById('desc-input').value = '';
+}
+
+function showAuthModal() {
+  document.getElementById('auth-modal').style.display = 'flex';
+}
+
+function closeAuthModal() {
+  document.getElementById('auth-modal').style.display = 'none';
+}
+
+function doSignIn() {
+  const email = document.getElementById('auth-email').value.trim();
+  const name = document.getElementById('auth-name').value.trim();
+  
+  if (!email) {
+    toast('⚠️ Please enter an email address');
+    return;
+  }
+  
+  App.user = {
+    id: uid('user'),
+    email: email,
+    name: name || email.split('@')[0],
+    avatar: `https://avatars.githubusercontent.com/u/${Math.floor(Math.random() * 10000)}?v=4`
+  };
+  
+  saveLS('archeohub_user', App.user);
+  closeAuthModal();
+  
+  document.getElementById('avatar-img').src = App.user.avatar;
+  toast('✅ Successfully signed in!');
+}
+
+// ============================================================================
+// FINDING SUBMISSION
+// ============================================================================
+
+async function submitFinding() {
+  const repoPath = document.getElementById('repo-input').value.trim();
+  const type = document.getElementById('type-input').value;
+  const title = document.getElementById('title-input').value.trim();
+  const email = document.getElementById('email-input').value.trim();
+  const desc = document.getElementById('desc-input').value.trim();
+  
+  if (!repoPath || !title || !desc) {
+    toast('⚠️ Please fill in all required fields');
+    return;
+  }
+  
+  const finding = {
+    id: uid('issue'),
+    repoPath: repoPath,
+    type: type,
+    title: title,
+    author: App.user ? App.user.name : 'Anonymous',
+    email: email,
+    desc: desc,
+    state: 'open',
+    comments: 0,
+    time: now(),
+    createdAt: now()
+  };
+  
+  App.issues.push(finding);
+  saveLS('archeohub_issues', App.issues);
+  
+  // Send to Formspree
+  toast('📧 Sending notification...');
+  const result = await sendFindingToFormspree(finding);
+  
+  if (result.ok) {
+    toast('✅ Finding submitted successfully!');
+  } else {
+    toast('✅ Finding saved (email notification may have failed)');
+  }
+  
+  closeNewFindingModal();
+  navigate('issues');
+}
+
+// ============================================================================
+// SEARCH
+// ============================================================================
+
+document.getElementById('global-search').addEventListener('input', (e) => {
+  App.filter.search = e.target.value.toLowerCase();
+  render();
+});
+
+// ============================================================================
+// RENDERING
+// ============================================================================
+
+function render() {
+  const root = document.getElementById('app-root');
+  
+  switch (App.page) {
+    case 'explore':
+      renderExplore(root);
+      break;
+    case 'map':
+      renderMap(root);
+      break;
+    case 'issues':
+      renderIssues(root);
+      break;
+    case 'prs':
+      renderPullRequests(root);
+      break;
+    case 'repo-detail':
+      renderRepoDetail(root);
+      break;
+    case 'profile':
+      renderProfile(root);
+      break;
+    default:
+      renderExplore(root);
+  }
+}
+
+function renderExplore(root) {
+  const filteredRepos = App.repos.filter(repo => {
+    const searchMatch = !App.filter.search || 
+      repo.name.toLowerCase().includes(App.filter.search) ||
+      repo.country.toLowerCase().includes(App.filter.search) ||
+      repo.region.toLowerCase().includes(App.filter.search) ||
+      repo.description.toLowerCase().includes(App.filter.search);
+    
+    return searchMatch;
+  });
+  
+  const stats = {
+    sites: App.repos.length,
+    countries: new Set(App.repos.map(r => r.country)).size,
+    issues: App.issues.filter(i => i.state === 'open').length,
+    prs: App.prs.filter(p => p.state === 'open').length
+  };
+  
+  root.innerHTML = `
+    <div class="mb-4">
+      <h1 style="font-size: 2rem; margin-bottom: 12px;">🏛️ Global Archaeological Sites</h1>
+      <p class="muted" style="font-size: 1.05rem;">
+        Collaborative platform for archaeological research and discovery
+      </p>
+    </div>
+    
+    <div class="three-col mb-4">
+      <div class="stat-card">
+        <div class="stat-number">${formatNumber(stats.sites)}</div>
+        <div class="stat-label">Archaeological Sites</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">${stats.countries}</div>
+        <div class="stat-label">Countries</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">${stats.issues}</div>
+        <div class="stat-label">Active Issues</div>
+      </div>
+    </div>
+    
+    <div class="Box mb-4">
+      <div class="Box-title">
+        <span>📍 Featured Sites (${filteredRepos.length})</span>
+      </div>
+      ${filteredRepos.slice(0, 20).map(repo => `
+        <div class="Box-row repo-card" onclick="viewRepo('${repo.id}')">
+          <div style="flex: 1;">
+            <div class="repo-title">${escapeHTML(repo.name)}</div>
+            <div class="repo-description">${escapeHTML(repo.description)}</div>
+            <div class="repo-meta">
+              <div class="repo-meta-item">
+                <span>📍 ${escapeHTML(repo.country)}</span>
+              </div>
+              <div class="repo-meta-item">
+                <span>⏳ ${escapeHTML(repo.period)}</span>
+              </div>
+              <div class="repo-meta-item">
+                <span>⭐ ${repo.stars}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderMap(root) {
+  root.innerHTML = `
+    <div class="mb-4">
+      <h1 style="font-size: 2rem; margin-bottom: 12px;">🗺️ Global Archaeological Map</h1>
+      <p class="muted">Interactive map of archaeological sites worldwide</p>
+    </div>
+    
+    <div id="map"></div>
+  `;
+  
+  setTimeout(() => initMap(), 100);
+}
+
+function initMap() {
+  if (App.mapInstance) {
+    App.mapInstance.remove();
+  }
+  
+  App.mapInstance = L.map('map').setView([30, 20], 2);
+  
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(App.mapInstance);
+  
+  App.repos.forEach(repo => {
+    const marker = L.marker([repo.lat, repo.lon]).addTo(App.mapInstance);
+    
+    marker.bindPopup(`
+      <div style="min-width: 200px;">
+        <h3 style="margin: 0 0 8px 0; color: #58a6ff;">${escapeHTML(repo.name)}</h3>
+        <p style="margin: 0 0 8px 0; font-size: 13px;">${escapeHTML(repo.description)}</p>
+        <div style="font-size: 12px; color: #8b949e;">
+          <div>📍 ${escapeHTML(repo.country)}</div>
+          <div>⏳ ${escapeHTML(repo.period)}</div>
+          <div>⭐ ${repo.stars} stars</div>
+        </div>
+        <button class="btn btn-sm btn-primary mt-2" onclick="viewRepo('${repo.id}'); App.mapInstance.closePopup();">
+          View Details
+        </button>
+      </div>
+    `);
+  });
+}
+
+function renderIssues(root) {
+  const filteredIssues = App.issues.filter(issue => {
+    const searchMatch = !App.filter.search || 
+      issue.title.toLowerCase().includes(App.filter.search) ||
+      issue.repoPath.toLowerCase().includes(App.filter.search);
+    return searchMatch;
+  });
+  
+  const openIssues = filteredIssues.filter(i => i.state === 'open');
+  const closedIssues = filteredIssues.filter(i => i.state === 'closed');
+  
+  root.innerHTML = `
+    <div class="mb-4">
+      <h1 style="font-size: 2rem; margin-bottom: 12px;">📋 Research Issues</h1>
+      <p class="muted">${openIssues.length} open · ${closedIssues.length} closed</p>
+    </div>
+    
+    <div class="Box">
+      <div class="Box-title">All Issues (${filteredIssues.length})</div>
+      ${filteredIssues.length === 0 ? `
+        <div class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <div>No issues found</div>
+        </div>
+      ` : filteredIssues.map(issue => `
+        <div class="Box-row">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+              <span class="Label Label--${issue.type.toLowerCase()}">${issue.type}</span>
+              <span style="font-weight: 600; color: var(--text-bright);">${escapeHTML(issue.title)}</span>
+            </div>
+            <div class="small muted">
+              ${escapeHTML(issue.repoPath)} · Opened by ${escapeHTML(issue.author)} · 
+              ${issue.comments} comments
+            </div>
+          </div>
+          <div>
+            <span class="badge" style="background: ${issue.state === 'open' ? 'rgba(45,164,78,0.2)' : 'rgba(138,148,158,0.2)'}; color: ${issue.state === 'open' ? '#2da44e' : '#8a949e'};">
+              ${issue.state}
+            </span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderPullRequests(root) {
+  const filteredPRs = App.prs.filter(pr => {
+    const searchMatch = !App.filter.search || 
+      pr.title.toLowerCase().includes(App.filter.search) ||
+      pr.repoPath.toLowerCase().includes(App.filter.search);
+    return searchMatch;
+  });
+  
+  const openPRs = filteredPRs.filter(p => p.state === 'open');
+  const mergedPRs = filteredPRs.filter(p => p.state === 'merged');
+  
+  root.innerHTML = `
+    <div class="mb-4">
+      <h1 style="font-size: 2rem; margin-bottom: 12px;">🔀 Pull Requests</h1>
+      <p class="muted">${openPRs.length} open · ${mergedPRs.length} merged</p>
+    </div>
+    
+    <div class="Box">
+      <div class="Box-title">All Pull Requests (${filteredPRs.length})</div>
+      ${filteredPRs.length === 0 ? `
+        <div class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <div>No pull requests found</div>
+        </div>
+      ` : filteredPRs.map(pr => `
+        <div class="Box-row">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+              <span class="Label Label--${pr.type.toLowerCase()}">${pr.type}</span>
+              <span style="font-weight: 600; color: var(--text-bright);">${escapeHTML(pr.title)}</span>
+            </div>
+            <div class="small muted">
+              ${escapeHTML(pr.repoPath)} · By ${escapeHTML(pr.author)} · 
+              ${pr.reviews} reviews
+            </div>
+          </div>
+          <div>
+            <span class="badge" style="background: ${pr.state === 'open' ? 'rgba(88,166,255,0.2)' : 'rgba(163,113,247,0.2)'}; color: ${pr.state === 'open' ? '#58a6ff' : '#a371f7'};">
+              ${pr.state}
+            </span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderRepoDetail(root) {
+  const repo = App.repos.find(r => r.id === App.currentRepoId);
+  if (!repo) {
+    root.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔍</div><div>Repository not found</div></div>';
+    return;
+  }
+  
+  const repoIssues = App.issues.filter(i => i.repoId === repo.id);
+  const repoPRs = App.prs.filter(p => p.repoId === repo.id);
+  
+  root.innerHTML = `
+    <div class="mb-3">
+      <button class="btn btn-ghost btn-sm" onclick="navigate('explore')">← Back to Explore</button>
+    </div>
+    
+    <div class="mb-4">
+      <h1 style="font-size: 2.5rem; margin-bottom: 12px;">${escapeHTML(repo.name)}</h1>
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="badge">📍 ${escapeHTML(repo.country)}</span>
+        <span class="badge">🌍 ${escapeHTML(repo.region)}</span>
+        <span class="badge">⏳ ${escapeHTML(repo.period)}</span>
+        <span class="badge">⭐ ${repo.stars}</span>
+      </div>
+      <p style="font-size: 1.1rem; line-height: 1.7; color: var(--text-primary);">${escapeHTML(repo.description)}</p>
+    </div>
+    
+    <div class="tabs mb-3">
+      <div class="tab selected" id="tab-overview" onclick="switchRepoTab('overview')">📖 Overview</div>
+      <div class="tab" id="tab-issues" onclick="switchRepoTab('issues')">📋 Issues (${repoIssues.length})</div>
+      <div class="tab" id="tab-prs" onclick="switchRepoTab('prs')">🔀 Pull Requests (${repoPRs.length})</div>
+      <div class="tab" id="tab-map" onclick="switchRepoTab('map')">🗺️ Location</div>
+    </div>
+    
+    <div id="repo-tab-content"></div>
+  `;
+  
+  switchRepoTab('overview');
+}
+
+function switchRepoTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('selected'));
+  document.getElementById('tab-' + tab).classList.add('selected');
+  
+  const content = document.getElementById('repo-tab-content');
+  const repo = App.repos.find(r => r.id === App.currentRepoId);
+  
+  switch (tab) {
+    case 'overview':
+      content.innerHTML = `
+        <div class="Box">
+          <div class="Box-title">Site Information</div>
+          <div class="Box-row">
+            <span class="muted">Location:</span>
+            <span>${escapeHTML(repo.country)}, ${escapeHTML(repo.region)}</span>
+          </div>
+          <div class="Box-row">
+            <span class="muted">Coordinates:</span>
+            <span>${repo.lat.toFixed(4)}°, ${repo.lon.toFixed(4)}°</span>
+          </div>
+          <div class="Box-row">
+            <span class="muted">Period:</span>
+            <span>${escapeHTML(repo.period)}</span>
+          </div>
+          <div class="Box-row">
+            <span class="muted">Stars:</span>
+            <span>⭐ ${repo.stars}</span>
+          </div>
+        </div>
+      `;
+      break;
+      
+    case 'issues':
+      const repoIssues = App.issues.filter(i => i.repoId === repo.id);
+      content.innerHTML = `
+        <div class="Box">
+          <div class="Box-title">Issues (${repoIssues.length})</div>
+          ${repoIssues.length === 0 ? `
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <div>No issues for this site</div>
+            </div>
+          ` : repoIssues.map(issue => `
+            <div class="Box-row">
+              <div>
+                <div style="margin-bottom: 6px;">
+                  <span class="Label Label--${issue.type.toLowerCase()}">${issue.type}</span>
+                  <span style="font-weight: 600; margin-left: 8px;">${escapeHTML(issue.title)}</span>
+                </div>
+                <div class="small muted">By ${escapeHTML(issue.author)} · ${issue.comments} comments</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      break;
+      
+    case 'prs':
+      const repoPRs = App.prs.filter(p => p.repoId === repo.id);
+      content.innerHTML = `
+        <div class="Box">
+          <div class="Box-title">Pull Requests (${repoPRs.length})</div>
+          ${repoPRs.length === 0 ? `
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <div>No pull requests for this site</div>
+            </div>
+          ` : repoPRs.map(pr => `
+            <div class="Box-row">
+              <div>
+                <div style="margin-bottom: 6px;">
+                  <span class="Label Label--${pr.type.toLowerCase()}">${pr.type}</span>
+                  <span style="font-weight: 600; margin-left: 8px;">${escapeHTML(pr.title)}</span>
+                </div>
+                <div class="small muted">By ${escapeHTML(pr.author)} · ${pr.reviews} reviews</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      break;
+      
+    case 'map':
+      content.innerHTML = '<div id="repo-map" style="height: 500px; border-radius: 12px; border: 1px solid var(--border);"></div>';
+      setTimeout(() => {
+        const map = L.map('repo-map').setView([repo.lat, repo.lon], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        L.marker([repo.lat, repo.lon]).addTo(map)
+          .bindPopup(`<b>${escapeHTML(repo.name)}</b><br>${escapeHTML(repo.country)}`).openPopup();
+      }, 100);
+      break;
+  }
+}
+
+function renderProfile(root) {
+  if (!App.user) {
+    root.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">👤</div>
+        <h2 style="margin-bottom: 12px;">Sign In Required</h2>
+        <p class="muted mb-3">Please sign in to view your profile</p>
+        <button class="btn btn-primary" onclick="showAuthModal()">Sign In</button>
+      </div>
+    `;
+    return;
+  }
+  
+  root.innerHTML = `
+    <div class="mb-4">
+      <h1 style="font-size: 2rem; margin-bottom: 12px;">👤 Profile</h1>
+    </div>
+    
+    <div class="Box">
+      <div class="Box-header">
+        <div class="d-flex align-items-center gap-3">
+          <img src="${App.user.avatar}" width="80" height="80" style="border-radius: 50%; border: 3px solid var(--accent-secondary);" />
+          <div>
+            <h2 style="margin: 0;">${escapeHTML(App.user.name)}</h2>
+            <div class="muted">${escapeHTML(App.user.email)}</div>
+          </div>
+        </div>
+      </div>
+      <div class="Box-row">
+        <span class="muted">Member since:</span>
+        <span>${new Date().toLocaleDateString()}</span>
+      </div>
+      <div class="Box-row">
+        <span class="muted">User ID:</span>
+        <span class="small">${App.user.id}</span>
+      </div>
+    </div>
+    
+    <div class="mt-4">
+      <button class="btn btn-danger" onclick="signOut()">Sign Out</button>
+    </div>
+  `;
+}
+
+function signOut() {
+  App.user = null;
+  saveLS('archeohub_user', null);
+  document.getElementById('avatar-img').src = 'https://avatars.githubusercontent.com/u/0?v=4';
+  toast('👋 Signed out successfully');
+  navigate('explore');
+}
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (App.user) {
+    document.getElementById('avatar-img').src = App.user.avatar;
+  }
+  
+  render();
+});
+
+</script>
+
+</body>
+</html>
