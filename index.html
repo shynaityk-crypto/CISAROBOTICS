@@ -3,772 +3,519 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ArcheoHub — The Distributed Version Control for Archaeology</title>
+  <title>ArcheoHub Sovereign — The Global Distributed Heritage Protocol</title>
 
   <link rel="stylesheet" href="https://unpkg.com/@primer/css@^21.0.0/dist/primer.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
-  
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
   <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <style>
     /* -------------------------------------------------------------------------
-       DESIGN SYSTEM & THEME (GitHub Primer Extensions)
+       EXOTIC HUB THEME (Professional Dark Mode)
        ------------------------------------------------------------------------- */
     :root {
-      --color-canvas-default: #0d1117;
-      --color-canvas-subtle: #161b22;
+      --color-canvas-default: #010409;
+      --color-canvas-subtle: #0d1117;
       --color-border-default: #30363d;
-      --color-accent-fg: #58a6ff;
-      --color-success-fg: #3fb950;
-      --color-attention-fg: #d29922;
-      --color-danger-fg: #f85149;
-      --color-fg-default: #c9d1d9;
-      --color-fg-muted: #8b949e;
-      --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --color-accent-emphasis: #1f6feb;
+      --color-success-emphasis: #238636;
+      --glow-gold: 0 0 15px rgba(210, 153, 34, 0.4);
     }
 
-    body {
-      background-color: var(--color-canvas-default);
-      color: var(--color-fg-default);
-      font-family: var(--font-stack);
-      line-height: 1.5;
-      margin: 0;
+    body { background-color: var(--color-canvas-default); color: #c9d1d9; overflow-x: hidden; }
+    
+    /* Global Layout */
+    .app-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
+    .main-viewport { flex: 1; padding: 32px; max-width: 1400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+
+    /* Component: Global Header */
+    .Header { background-color: var(--color-canvas-subtle); border-bottom: 1px solid var(--color-border-default); position: sticky; top: 0; z-index: 1000; }
+    .brand-title { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; color: #fff; text-decoration: none; }
+    .nav-link { color: #8b949e; transition: 0.2s; cursor: pointer; }
+    .nav-link:hover { color: #fff; }
+
+    /* Component: Site Map */
+    #world-map { height: 500px; border-radius: 12px; border: 1px solid var(--color-border-default); margin-bottom: 24px; box-shadow: var(--glow-gold); }
+
+    /* Component: Timeline Slider */
+    .timeline-container { background: var(--color-canvas-subtle); padding: 40px 60px; border-radius: 12px; border: 1px solid var(--color-border-default); margin-bottom: 32px; }
+    #timeline-slider { margin-top: 20px; }
+    .noUi-connect { background: var(--color-accent-emphasis); }
+
+    /* Component: Site Cards (The "Repo" Feel) */
+    .site-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    .site-card { 
+      background: var(--color-canvas-subtle); border: 1px solid var(--color-border-default); 
+      border-radius: 8px; padding: 16px; transition: transform 0.2s, border-color 0.2s;
+      cursor: pointer; position: relative; overflow: hidden;
     }
+    .site-card:hover { transform: translateY(-4px); border-color: #8b949e; }
+    .site-card::after { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--color-accent-emphasis); }
 
-    /* Layout Containers */
-    .app-container { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
-    .page-header { border-bottom: 1px solid var(--color-border-default); padding: 16px 0; margin-bottom: 24px; }
-    
-    /* Header & Navigation */
-    header.Header { background-color: var(--color-canvas-subtle); border-bottom: 1px solid var(--color-border-default); }
-    .Header-item--full { flex: 1; }
-    .brand-logo { font-weight: 600; font-size: 1.25rem; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 8px; }
-    
-    /* Sidebar Layouts */
-    .layout-sidebar { display: grid; grid-template-columns: 296px 1fr; gap: 32px; }
-    .layout-main { display: grid; grid-template-columns: 1fr 300px; gap: 24px; }
-
-    /* Cards & Components */
-    .Box--condensed .Box-row { padding: 8px 16px; }
-    .Box-header { background-color: var(--color-canvas-subtle); border-bottom: 1px solid var(--color-border-default); }
-    
-    /* Heatmap (Activity Graph) */
-    .contribution-graph { display: grid; grid-template-columns: repeat(53, 1fr); gap: 3px; width: 100%; overflow-x: auto; padding: 4px; }
-    .graph-day { width: 11px; height: 11px; border-radius: 2px; background-color: #161b22; }
-    .graph-day[data-level="1"] { background-color: #0e4429; }
-    .graph-day[data-level="2"] { background-color: #006d32; }
-    .graph-day[data-level="3"] { background-color: #26a641; }
-    .graph-day[data-level="4"] { background-color: #39d353; }
-
-    /* Map View */
-    #global-map { height: 600px; border-radius: 6px; border: 1px solid var(--color-border-default); z-index: 1; }
-    .map-popup-card { color: #000; font-family: var(--font-stack); }
-
-    /* File Explorer Style */
-    .file-tree-item { cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 4px; }
-    .file-tree-item:hover { background-color: var(--color-canvas-subtle); }
-    .file-icon { color: var(--color-fg-muted); }
-
-    /* Stratigraphy Diff Styles */
-    .diff-added { background-color: rgba(63, 185, 80, 0.15); border-left: 4px solid var(--color-success-fg); }
-    .diff-removed { background-color: rgba(248, 81, 73, 0.15); border-left: 4px solid var(--color-danger-fg); }
-
-    /* 3D Viewer Overlays */
-    .overlay-3d { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: flex; flex-direction: column; }
-    .viewer-toolbar { padding: 12px 24px; background: var(--color-canvas-subtle); display: flex; justify-content: space-between; align-items: center; }
-    #canvas-container { flex: 1; position: relative; }
-
-    /* Tabs */
-    .UnderlineNav { display: flex; border-bottom: 1px solid var(--color-border-default); margin-bottom: 16px; }
-    .UnderlineNav-item { padding: 8px 16px; border-bottom: 2px solid transparent; cursor: pointer; color: var(--color-fg-default); text-decoration: none; }
-    .UnderlineNav-item:hover { border-bottom-color: var(--color-fg-muted); }
-    .UnderlineNav-item.selected { border-bottom-color: var(--color-accent-fg); font-weight: 600; }
-
-    /* Markdown Container */
-    .markdown-body { padding: 24px; font-size: 14px; color: var(--color-fg-default); }
-    .markdown-body h1, .markdown-body h2 { border-bottom: 1px solid var(--color-border-default); padding-bottom: 0.3em; }
-
-    /* Floating Toasts */
-    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 3000; display: flex; flex-direction: column; gap: 8px; }
-    .toast { background: var(--color-canvas-subtle); border: 1px solid var(--color-border-default); padding: 12px 16px; border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease; }
-
-    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-    /* Mobile adjustments */
-    @media (max-width: 768px) {
-      .layout-sidebar, .layout-main { grid-template-columns: 1fr; }
-      .app-container { padding: 0 16px; }
+    /* Auth Views */
+    .auth-overlay { 
+      position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; 
+      display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);
     }
+    .auth-box { width: 400px; padding: 32px; background: var(--color-canvas-subtle); border: 1px solid var(--color-border-default); border-radius: 12px; }
+
+    /* 3D Context Viewer */
+    .viewer-3d-overlay { position: fixed; inset: 0; background: #000; z-index: 10001; display: flex; flex-direction: column; }
+    #canvas-target { flex: 1; }
+
+    /* Profile UI */
+    .profile-header { display: flex; align-items: center; gap: 24px; margin-bottom: 32px; }
+    .profile-avatar { width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--color-border-default); object-fit: cover; }
+
+    /* Animations */
+    .fade-in { animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
 
-<header class="Header px-3 py-2">
-  <div class="Header-item">
-    <a href="#" data-route="dashboard" class="brand-logo">
-      <svg height="32" viewBox="0 0 16 16" version="1.1" width="32" fill="currentColor"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path></svg>
-      <span>ArcheoHub</span>
-    </a>
-  </div>
-  <div class="Header-item Header-item--full">
-    <div class="header-search">
-      <input type="text" id="global-search" class="form-control input-block input-dark" placeholder="Search excavations, artifacts, or authors..." />
+<div id="app-shell" class="app-wrapper">
+  <header class="Header px-4 py-3 d-flex flex-items-center flex-justify-between">
+    <div class="d-flex flex-items-center">
+      <a href="#" class="brand-title mr-4" onclick="App.router.go('explore')">ARCHEO<span style="color:var(--color-accent-emphasis)">HUB</span></a>
+      <nav class="d-none d-md-flex gap-3">
+        <a class="nav-link" onclick="App.router.go('explore')">Explore World</a>
+        <a class="nav-link" onclick="App.router.go('map')">Global Atlas</a>
+        <a class="nav-link" onclick="App.router.go('community')">Community Hub</a>
+      </nav>
     </div>
-  </div>
-  <div class="Header-item d-none d-md-flex">
-    <nav class="d-flex gap-3">
-      <a class="Header-link" href="#" data-route="explore">Explore</a>
-      <a class="Header-link" href="#" data-route="map">Map</a>
-      <a class="Header-link" href="#" data-route="marketplace">Artifacts</a>
-      <a class="Header-link" href="#" data-route="community">Community</a>
-    </nav>
-  </div>
-  <div class="Header-item mr-0">
-    <details class="details-reset details-overlay d-inline-block">
-      <summary class="Header-link" aria-haspopup="menu">
-        <img id="user-avatar" class="avatar avatar-user" src="https://avatars.githubusercontent.com/u/0?v=4" width="20" height="20">
-        <span class="dropdown-caret"></span>
-      </summary>
-      <div class="dropdown-menu dropdown-menu-sw mt-2" style="width: 200px;">
-        <div class="dropdown-header">Signed in as <strong id="current-user-name">Guest</strong></div>
-        <div class="dropdown-divider"></div>
-        <a class="dropdown-item" href="#" data-route="profile">Your Profile</a>
-        <a class="dropdown-item" href="#" data-route="settings">Settings</a>
-        <div class="dropdown-divider"></div>
-        <a class="dropdown-item" href="#" id="logout-btn">Sign Out</a>
-      </div>
-    </details>
-  </div>
-</header>
 
-<main id="app-root" class="app-container py-4">
-  </main>
+    <div class="d-flex flex-items-center gap-3">
+      <div id="auth-nav-area">
+        </div>
+    </div>
+  </header>
 
-<div id="modal-container" class="overlay" hidden></div>
-<div id="toast-root" class="toast-container"></div>
+  <main class="main-viewport fade-in" id="view-target"></main>
+
+  <footer class="p-5 border-top border-default mt-5 text-center color-fg-muted f6">
+    <div class="mb-2">© 2026 The ArcheoHub Sovereign Protocol • Distributed Heritage Data</div>
+    <div class="d-flex flex-justify-center gap-3">
+      <a href="#">Documentation</a>
+      <a href="#">API</a>
+      <a href="#">Whitepaper</a>
+      <a href="#">KZ-Heritage-Vault</a>
+    </div>
+  </footer>
+</div>
+
+<div id="modal-layer"></div>
+<div id="toast-container" style="position:fixed; bottom:20px; right:20px; z-index:11000;"></div>
 
 <script>
 /**
- * ARCHEO-GIT CORE: SIMULATED VERSION CONTROL FOR SPATIAL DATA
- * This module replicates Git's internal object model but specialized
- * for archaeological units (stratigraphy, artifacts, trenches).
+ * ARCHEOHUB SOVEREIGN ENGINE
+ * A Massive Unified Framework for Archaeological Version Control
  */
 
-class ArcheoGit {
-  constructor() {
-    this.store = {
-      blobs: {},   // Raw data (json)
-      trees: {},   // Hierarchical structure
-      commits: {}, // Snapshot objects
-      refs: {
-        heads: { main: null }
-      }
-    };
-  }
-
-  // Generate a SHA-1 like hash for objects
-  hash(obj) {
-    const str = JSON.stringify(obj);
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = ((hash << 5) - hash) + str.charCodeAt(i);
-      hash |= 0;
-    }
-    return 'sha-' + Math.abs(hash).toString(16).padStart(8, '0');
-  }
-
-  createBlob(data) {
-    const id = this.hash(data);
-    this.store.blobs[id] = data;
-    return id;
-  }
-
-  createTree(entries) {
-    const id = this.hash(entries);
-    this.store.trees[id] = entries; // [{ name, type, oid }]
-    return id;
-  }
-
-  commit(treeId, message, author, parent = null) {
-    const commitObj = {
-      treeId,
-      message,
-      author,
-      timestamp: new Date().toISOString(),
-      parent
-    };
-    const id = this.hash(commitObj);
-    this.store.commits[id] = commitObj;
-    return id;
-  }
-}
-
-/**
- * WORLD DATA & GENERATORS
- * Generating thousands of lines of simulated archaeological context.
- */
-
-const SITES_REGISTRY = [
-  { id: 'knossos', name: 'Knossos Palace', region: 'Crete, Greece', lat: 35.2979, lng: 25.1631, period: 'Minoan' },
-  { id: 'giza', name: 'Giza Plateau', region: 'Cairo, Egypt', lat: 29.9792, lng: 31.1342, period: 'Old Kingdom' },
-  { id: 'pompeii', name: 'Pompeii Regio V', region: 'Campania, Italy', lat: 40.7489, lng: 14.4848, period: 'Roman' },
-  { id: 'petra', name: 'Al-Khazneh Sector', region: 'Ma\'an, Jordan', lat: 30.3222, lng: 35.4516, period: 'Nabatean' },
-  { id: 'stonehenge', name: 'Stonehenge Circle', region: 'Wiltshire, UK', lat: 51.1789, lng: -1.8262, period: 'Neolithic' },
-  { id: 'teotihuacan', name: 'Pyramid of the Moon', region: 'Mexico', lat: 19.6925, lng: -98.8438, period: 'Pre-Columbian' },
-  { id: 'angkor', name: 'Bayon Temple Area', region: 'Siem Reap, Cambodia', lat: 13.4412, lng: 103.8591, period: 'Khmer' },
-  { id: 'machu-picchu', name: 'Intihuatana Sector', region: 'Cusco, Peru', lat: -13.1631, lng: -72.5450, period: 'Inca' }
-];
-
-const SOIL_TYPES = [
-  { name: 'Humus', color: '#2c1e16', density: 'Low' },
-  { name: 'Compact Clay', color: '#7a5c41', density: 'High' },
-  { name: 'Sandy Loam', color: '#c2b280', density: 'Medium' },
-  { name: 'Volcanic Ash', color: '#555555', density: 'Varies' },
-  { name: 'Burnt Debris', color: '#1a1a1a', density: 'Porous' }
-];
-
-const ARTIFACT_TYPES = ['Ceramic', 'Lithic', 'Metal', 'Organic', 'Architecture'];
-
-const MOCK_AUTHORS = [
-  { name: 'Dr. Elena Rossi', bio: 'Specialist in Mediterranean Bronze Age.', avatar: 'https://i.pravatar.cc/150?u=elena' },
-  { name: 'Prof. Marcus Thorne', bio: 'Field Director at Luxor Excavations.', avatar: 'https://i.pravatar.cc/150?u=marcus' },
-  { name: 'Sarah Al-Fayed', bio: 'Digital Archaeologist & GIS Expert.', avatar: 'https://i.pravatar.cc/150?u=sarah' },
-  { name: 'Hiroshi Tanaka', bio: 'Ceramic Analyst focused on Jomon pottery.', avatar: 'https://i.pravatar.cc/150?u=hiroshi' }
-];
-
-/**
- * APP STATE MANAGEMENT
- */
-const State = {
-  view: 'dashboard',
-  currentUser: {
-    id: 'u-1',
-    name: 'Dr. Jane Doe',
-    role: 'Lead Researcher',
-    avatar: 'https://avatars.githubusercontent.com/u/123456',
-    contributions: generateHeatmapData()
+const App = {
+  state: {
+    user: null, // Logged in user object
+    currentView: 'explore',
+    sites: [],
+    filters: { yearRange: [-5000, 2026], search: '' },
+    repos: []
   },
-  repositories: [],
-  issues: [],
-  activeRepo: null,
-  activeCommit: null,
-  filters: { search: '', period: 'All' }
+
+  // INITIALIZATION
+  init: async function() {
+    this.auth.loadSession();
+    this.data.seedWorld();
+    this.router.sync();
+    this.ui.renderAuthNav();
+    console.log("ArcheoHub Sovereign Initialized. Nodes Active:", this.state.sites.length);
+  }
 };
 
-// Logic to generate 1 year of contribution data
-function generateHeatmapData() {
-  const data = [];
-  for (let i = 0; i < 365; i++) {
-    data.push(Math.floor(Math.random() * 5));
+/* =========================================================================
+   1. AUTHENTICATION SYSTEM
+   ========================================================================= */
+App.auth = {
+  saveSession: (user) => {
+    localStorage.setItem('archeo_user', JSON.stringify(user));
+    App.state.user = user;
+    App.ui.renderAuthNav();
+  },
+  loadSession: () => {
+    const saved = localStorage.getItem('archeo_user');
+    if (saved) App.state.user = JSON.parse(saved);
+  },
+  logout: () => {
+    localStorage.removeItem('archeo_user');
+    App.state.user = null;
+    location.reload();
+  },
+  signup: (username, pfp) => {
+    const user = {
+      username,
+      avatar: pfp || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+      rank: 'Junior Field Researcher',
+      contributions: 0,
+      joined: new Date().getFullYear()
+    };
+    App.auth.saveSession(user);
+    App.ui.toast("Welcome to the Protocol, " + username);
+    App.router.go('explore');
   }
-  return data;
-}
+};
 
-/**
- * INITIALIZATION & DATA SEEDING
- */
-function seedData() {
-  const engine = new ArcheoGit();
-  
-  SITES_REGISTRY.forEach(site => {
-    // Generate 5-15 commits per repository
-    const commitCount = 5 + Math.floor(Math.random() * 10);
-    let parentHash = null;
-    let repoCommits = [];
+/* =========================================================================
+   2. WORLD DATABASE (Massive Data Seeding)
+   ========================================================================= */
+App.data = {
+  seedWorld: function() {
+    const rawData = [
+      // KAZAKHSTAN & CENTRAL ASIA
+      { id: 'kz-tamgaly', name: 'Tamgaly Petroglyphs', region: 'Kazakhstan', period: 'Bronze Age', lat: 43.8, lon: 75.5, year: -1500, description: 'Ancient rock art depicting solar deities and nomadic life.' },
+      { id: 'kz-otrar', name: 'Ancient Otrar', region: 'Kazakhstan', period: 'Medieval', lat: 42.8, lon: 68.3, year: 800, description: 'A massive Silk Road hub and center of learning.' },
+      { id: 'kz-berel', name: 'Berel Mounds', region: 'Kazakhstan', period: 'Saka Period', lat: 49.3, lon: 86.4, year: -400, description: 'The "Valley of Kings" with preserved permafrost burials.' },
+      { id: 'kz-issyk', name: 'Issyk Kurgan', region: 'Kazakhstan', period: 'Saka Period', lat: 43.3, lon: 77.4, year: -500, description: 'Discovery site of the Golden Man (Altin Adam).' },
+      
+      // EUROPE
+      { id: 'eu-stonehenge', name: 'Stonehenge', region: 'UK', period: 'Neolithic', lat: 51.1, lon: -1.8, year: -3000, description: 'Prehistoric megalithic structure aligned with the solstices.' },
+      { id: 'eu-pompeii', name: 'Pompeii City', region: 'Italy', period: 'Roman', lat: 40.7, lon: 14.4, year: 79, description: 'A city frozen in time by the eruption of Mt. Vesuvius.' },
+      { id: 'eu-altamira', name: 'Altamira Cave', region: 'Spain', period: 'Paleolithic', lat: 43.3, lon: -4.1, year: -34000, description: 'Upper Paleolithic cave paintings of wild mammals.' },
+      
+      // ASIA (China, Japan, SE Asia)
+      { id: 'as-terracotta', name: 'Terracotta Army', region: 'China', period: 'Qin Dynasty', lat: 34.3, lon: 109.2, year: -210, description: '8,000 unique life-sized soldiers guarding the First Emperor.' },
+      { id: 'as-nara', name: 'Heijo-kyo Palace', region: 'Japan', period: 'Nara Period', lat: 34.6, lon: 135.8, year: 710, description: 'The grand capital of classical Japanese civilization.' },
+      { id: 'as-angkor', name: 'Angkor Wat', region: 'Cambodia', period: 'Khmer Empire', lat: 13.4, lon: 103.8, year: 1150, description: 'The largest religious monument in the entire world.' },
+      
+      // AMERICAS (USA, Canada, South America)
+      { id: 'am-machu', name: 'Machu Picchu', region: 'Peru', period: 'Inca Empire', lat: -13.1, lon: -72.5, year: 1450, description: 'The citadel in the clouds, a masterpiece of Incan masonry.' },
+      { id: 'am-chaco', name: 'Chaco Canyon', region: 'USA', period: 'Puebloan', lat: 36.0, lon: -107.9, year: 900, description: 'Center of ancestral Puebloan culture in New Mexico.' },
+      { id: 'am-lanse', name: 'L\'Anse aux Meadows', region: 'Canada', period: 'Viking Age', lat: 51.5, lon: -55.5, year: 1000, description: 'Evidence of Norse exploration of North America.' },
+      { id: 'am-teotihuacan', name: 'Pyramid of the Sun', region: 'Mexico', period: 'Teotihuacan', lat: 19.6, lon: -98.8, year: 200, description: 'One of the most architecturally significant Mesoamerican pyramids.' }
+    ];
 
-    for (let i = 0; i < commitCount; i++) {
-      // Create random stratigraphy data (blobs)
-      const layerCount = 3 + Math.floor(Math.random() * 4);
-      const layers = [];
-      for (let j = 0; j < layerCount; j++) {
-        const soil = SOIL_TYPES[Math.floor(Math.random() * SOIL_TYPES.length)];
-        layers.push({
-          id: `layer-${j}`,
-          name: `Context ${100 + j}`,
-          depth: (j * 20) + Math.floor(Math.random() * 10),
-          soil: soil.name,
-          color: soil.color,
-          artifacts: Math.floor(Math.random() * 50)
+    // Procedural Scaling: Generate 50 more simulated sites to populate the map
+    for(let i=0; i<50; i++) {
+      rawData.push({
+        id: `gen-${i}`,
+        name: `Research Site Alpha-${i}`,
+        region: 'Global Exploration',
+        period: 'Various',
+        lat: (Math.random() * 140) - 70,
+        lon: (Math.random() * 300) - 150,
+        year: Math.floor(Math.random() * 6000) - 4000,
+        description: 'Auto-detected heritage node pending verification.'
+      });
+    }
+    this.App.state.sites = rawData;
+  }
+};
+
+/* =========================================================================
+   3. ROUTING & UI RENDERER
+   ========================================================================= */
+App.router = {
+  go: function(view, id = null) {
+    App.state.currentView = view;
+    App.state.activeId = id;
+    this.render();
+  },
+  sync: function() { this.render(); },
+  render: function() {
+    const target = document.getElementById('view-target');
+    target.innerHTML = '';
+    
+    switch(App.state.currentView) {
+      case 'explore': App.ui.views.explore(target); break;
+      case 'map': App.ui.views.map(target); break;
+      case 'profile': App.ui.views.profile(target); break;
+      case 'auth': App.ui.views.auth(target); break;
+      case 'repo': App.ui.views.repo(target, App.state.activeId); break;
+    }
+  }
+};
+
+App.ui = {
+  // Global components
+  toast: (msg) => {
+    const t = document.createElement('div');
+    t.className = 'Box Box--condensed p-3 mb-2 color-shadow-large color-bg-accent-emphasis color-fg-on-emphasis fade-in';
+    t.innerText = msg;
+    document.getElementById('toast-container').appendChild(t);
+    setTimeout(() => t.remove(), 4000);
+  },
+
+  renderAuthNav: () => {
+    const area = document.getElementById('auth-nav-area');
+    if (App.state.user) {
+      area.innerHTML = `
+        <div class="d-flex flex-items-center gap-2">
+          <span class="d-none d-md-block small color-fg-muted">${App.state.user.username}</span>
+          <img src="${App.state.user.avatar}" class="avatar circle pointer" width="32" height="32" onclick="App.router.go('profile')">
+          <button class="btn btn-sm btn-danger" onclick="App.auth.logout()">Out</button>
+        </div>
+      `;
+    } else {
+      area.innerHTML = `<button class="btn btn-primary btn-sm" onclick="App.router.go('auth')">Join Protocol</button>`;
+    }
+  },
+
+  views: {
+    auth: (target) => {
+      target.innerHTML = `
+        <div class="auth-overlay">
+          <div class="auth-box fade-in">
+            <h2 class="mb-3">Create Researcher ID</h2>
+            <p class="color-fg-muted mb-4">Join the global distributed excavation network.</p>
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="reg-name" class="form-control input-block" placeholder="Dr. Jones">
+            </div>
+            <div class="form-group">
+              <label>Avatar URL (Optional)</label>
+              <input type="text" id="reg-pfp" class="form-control input-block" placeholder="https://...">
+            </div>
+            <button class="btn btn-primary btn-block mt-4" onclick="App.auth.signup(document.getElementById('reg-name').value, document.getElementById('reg-pfp').value)">Initialize Account</button>
+            <button class="btn btn-invisible btn-block mt-2" onclick="App.router.go('explore')">Cancel</button>
+          </div>
+        </div>
+      `;
+    },
+
+    explore: (target) => {
+      target.innerHTML = `
+        <div class="timeline-container">
+          <div class="d-flex flex-justify-between flex-items-center mb-2">
+            <h3 class="f4">Chronological Horizon</h3>
+            <span class="Label Label--info" id="year-label">-5000 BC to 2026 AD</span>
+          </div>
+          <div id="timeline-slider"></div>
+          <div class="mt-4">
+             <input type="text" class="form-control input-block input-lg color-bg-subtle" placeholder="Search by site name, culture, or region (e.g. 'Kazakhstan', 'Inca')..." id="site-search">
+          </div>
+        </div>
+
+        <div class="site-grid" id="site-results"></div>
+      `;
+
+      // Init Timeline Slider
+      const slider = document.getElementById('timeline-slider');
+      noUiSlider.create(slider, {
+        start: [-5000, 2026],
+        connect: true,
+        range: { 'min': -10000, 'max': 2026 },
+        step: 10
+      });
+
+      const updateResults = () => {
+        const [start, end] = slider.noUiSlider.get();
+        document.getElementById('year-label').innerText = `${Math.round(start)} to ${Math.round(end)}`;
+        
+        const query = document.getElementById('site-search').value.toLowerCase();
+        const filtered = App.state.sites.filter(s => {
+          const matchYear = s.year >= start && s.year <= end;
+          const matchText = s.name.toLowerCase().includes(query) || s.region.toLowerCase().includes(query);
+          return matchYear && matchText;
         });
-      }
 
-      const stratBlob = engine.createBlob({ type: 'stratigraphy', data: layers });
-      const metaBlob = engine.createBlob({ type: 'meta', siteId: site.id, session: `Phase ${i+1}` });
+        document.getElementById('site-results').innerHTML = filtered.map(s => `
+          <div class="site-card fade-in" onclick="App.router.go('repo', '${s.id}')">
+            <div class="f3 text-bold color-fg-accent">${s.name}</div>
+            <div class="f6 color-fg-muted mb-2">${s.region} • ${s.period}</div>
+            <p class="f6">${s.description}</p>
+            <div class="mt-3 d-flex gap-2">
+              <span class="Label Label--secondary">${s.year < 0 ? Math.abs(s.year)+' BC' : s.year+' AD'}</span>
+            </div>
+          </div>
+        `).join('');
+      };
+
+      slider.noUiSlider.on('update', updateResults);
+      document.getElementById('site-search').oninput = updateResults;
+      updateResults();
+    },
+
+    map: (target) => {
+      target.innerHTML = `
+        <div class="Subhead"><div class="Subhead-heading">Global GIS Distribution</div></div>
+        <div id="world-map"></div>
+        <div class="Box p-3">
+          <div class="d-flex flex-justify-between">
+            <div><strong>Active Nodes:</strong> ${App.state.sites.length}</div>
+            <div><strong>Protocol Status:</strong> Synced</div>
+          </div>
+        </div>
+      `;
       
-      const treeId = engine.createTree([
-        { name: 'stratigraphy.json', type: 'blob', oid: stratBlob },
-        { name: 'metadata.json', type: 'blob', oid: metaBlob },
-        { name: 'README.md', type: 'blob', oid: engine.createBlob(`# ${site.name}\nExcavation notes for ${site.period} period.`) }
-      ]);
+      setTimeout(() => {
+        const map = L.map('world-map').setView([30, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-      const author = MOCK_AUTHORS[Math.floor(Math.random() * MOCK_AUTHORS.length)];
-      const hash = engine.commit(treeId, `Logging session ${i+1}: Trench A expanded`, author.name, parentHash);
-      parentHash = hash;
-      repoCommits.push(hash);
+        App.state.sites.forEach(s => {
+          const marker = L.circleMarker([s.lat, s.lon], { radius: 6, color: '#1f6feb', fillOpacity: 0.8 }).addTo(map);
+          marker.bindPopup(`<b>${s.name}</b><br>${s.region}<br><button class="btn btn-sm mt-2" onclick="App.router.go('repo', '${s.id}')">Open Repo</button>`);
+        });
+      }, 100);
+    },
+
+    profile: (target) => {
+      const u = App.state.user;
+      if (!u) return App.router.go('auth');
+      target.innerHTML = `
+        <div class="profile-header">
+          <img src="${u.avatar}" class="profile-avatar">
+          <div>
+            <h1 class="f1-light">${u.username}</h1>
+            <p class="color-fg-muted">${u.rank} • Joined ${u.joined}</p>
+            <div class="d-flex gap-2 mt-2">
+              <button class="btn btn-sm">Edit Profile</button>
+              <button class="btn btn-sm btn-primary">Publish Findings</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="layout-main d-flex gap-4">
+          <div class="col-8">
+            <h3 class="mb-3">Contributions</h3>
+            <div class="Box p-5 text-center color-fg-muted">
+              No public findings yet. Start an excavation branch to begin.
+            </div>
+          </div>
+          <div class="col-4">
+             <div class="Box p-3">
+               <h4 class="mb-2">Stats</h4>
+               <ul class="list-style-none">
+                 <li class="mb-1">⭐ Stars: 0</li>
+                 <li class="mb-1">🍴 Forks: 0</li>
+                 <li class="mb-1">🌍 Sites Visited: 4</li>
+               </ul>
+             </div>
+          </div>
+        </div>
+      `;
+    },
+
+    repo: (target, siteId) => {
+      const site = App.state.sites.find(s => s.id === siteId);
+      target.innerHTML = `
+        <div class="repo-header mb-4">
+          <div class="d-flex flex-justify-between flex-items-start">
+            <div>
+              <nav aria-label="Breadcrumb"><ol>
+                <li class="breadcrumb-item"><a href="#" onclick="App.router.go('explore')">World</a></li>
+                <li class="breadcrumb-item breadcrumb-item-selected">${site.name}</li>
+              </ol></nav>
+              <h2 class="f1-light mt-2">${site.name} <span class="Label Label--secondary v-align-middle">Public</span></h2>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-sm">Watch</button>
+              <button class="btn btn-sm">Star</button>
+              <button class="btn btn-sm">Fork</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="UnderlineNav mb-4">
+          <div class="UnderlineNav-body">
+            <button class="UnderlineNav-item selected">Code (Layers)</button>
+            <button class="UnderlineNav-item">Issues <span class="Counter">0</span></button>
+            <button class="UnderlineNav-item">Pull Requests</button>
+            <button class="UnderlineNav-item">Actions</button>
+          </div>
+        </div>
+
+        <div class="Box mb-4">
+          <div class="Box-header d-flex flex-justify-between">
+            <span><strong>main</strong> branch</span>
+            <button class="btn btn-sm btn-primary" onclick="App.ui.launch3D()">Open in 3D Context</button>
+          </div>
+          <div class="Box-row d-flex flex-justify-between">
+             <div><span class="color-fg-accent mr-2">📁</span> stratigraphy/</div>
+             <span class="color-fg-muted f6">Initial Commit</span>
+          </div>
+          <div class="Box-row d-flex flex-justify-between">
+             <div><span class="color-fg-accent mr-2">📄</span> metadata.json</div>
+             <span class="color-fg-muted f6">Update site year</span>
+          </div>
+          <div class="Box-row d-flex flex-justify-between">
+             <div><span class="color-fg-accent mr-2">📝</span> README.md</div>
+             <span class="color-fg-muted f6">Add site description</span>
+          </div>
+        </div>
+
+        <div class="Box p-4">
+          <h3>README.md</h3>
+          <hr>
+          <p>${site.description}</p>
+          <p class="mt-3"><strong>Period:</strong> ${site.period}</p>
+          <p><strong>Coordinates:</strong> ${site.lat}, ${site.lon}</p>
+        </div>
+      `;
     }
+  },
 
-    State.repositories.push({
-      id: site.id,
-      name: site.name,
-      siteInfo: site,
-      commits: repoCommits,
-      currentHash: parentHash,
-      stars: Math.floor(Math.random() * 500),
-      forks: Math.floor(Math.random() * 100),
-      issues: Math.floor(Math.random() * 15),
-      engine: engine
+  /* =========================================================================
+     4. 3D CONTEXT ENGINE
+     ========================================================================= */
+  launch3D: () => {
+    const overlay = document.createElement('div');
+    overlay.className = 'viewer-3d-overlay';
+    overlay.innerHTML = `
+      <div class="p-3 d-flex flex-justify-between border-bottom border-default">
+        <h3 class="f4">Spatial Stratigraphy Viewer</h3>
+        <button class="btn btn-danger btn-sm" onclick="this.parentElement.parentElement.remove()">Close</button>
+      </div>
+      <div id="canvas-target"></div>
+    `;
+    document.body.appendChild(overlay);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050505);
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.getElementById('canvas-target').appendChild(renderer.domElement);
+
+    // Create a mock excavation trench
+    const layers = [
+      { color: 0x4b3621, h: 0.5 }, // Topsoil
+      { color: 0x8b4513, h: 1.2 }, // Bronze Age Layer
+      { color: 0xd2b48c, h: 0.8 }  // Natural soil
+    ];
+    
+    let y = 0;
+    layers.forEach(l => {
+      const geo = new THREE.BoxGeometry(10, l.h, 10);
+      const mat = new THREE.MeshStandardMaterial({ color: l.color });
+      const cube = new THREE.Mesh(geo, mat);
+      cube.position.y = y;
+      scene.add(cube);
+      y -= l.h;
     });
-  });
 
-  // Seed Issues
-  State.repositories.slice(0, 3).forEach(repo => {
-    State.issues.push({
-      id: `iss-${repo.id}-1`,
-      repoId: repo.id,
-      title: 'Discrepancy in Carbon-14 dating',
-      author: 'Dr. Elena Rossi',
-      status: 'open',
-      labels: ['bug', 'dating'],
-      comments: 3,
-      created: '2 days ago'
-    });
-  });
-}
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(5, 5, 5);
+    scene.add(light);
+    scene.add(new THREE.AmbientLight(0x404040));
 
-/**
- * UI RENDERING ENGINE (SPA)
- */
-const Router = {
-  navigate(route, params = {}) {
-    State.view = route;
-    if (params.repoId) {
-      State.activeRepo = State.repositories.find(r => r.id === params.repoId);
+    camera.position.set(15, 5, 15);
+    camera.lookAt(0, 0, 0);
+
+    function animate() {
+      if(!document.contains(overlay)) return;
+      requestAnimationFrame(animate);
+      scene.rotation.y += 0.005;
+      renderer.render(scene, camera);
     }
-    if (params.commitHash) {
-      State.activeCommit = params.commitHash;
-    }
-    render();
-    window.scrollTo(0, 0);
+    animate();
   }
 };
 
-function render() {
-  const root = document.getElementById('app-root');
-  root.innerHTML = '';
-
-  switch (State.view) {
-    case 'dashboard': renderDashboard(root); break;
-    case 'explore': renderExplore(root); break;
-    case 'map': renderMap(root); break;
-    case 'repository': renderRepository(root); break;
-    case 'commit': renderCommitView(root); break;
-    case 'profile': renderProfile(root); break;
-    default: renderDashboard(root);
-  }
-}
-
-function renderDashboard(container) {
-  const html = `
-    <div class="layout-sidebar">
-      <section>
-        <div class="Box mb-3">
-          <div class="Box-header">
-            <h3 class="Box-title">Repositories</h3>
-          </div>
-          <div class="Box-body p-0">
-            ${State.repositories.slice(0, 8).map(repo => `
-              <div class="Box-row d-flex flex-items-center gap-2">
-                <img src="https://ui-avatars.com/api/?name=${repo.name}&background=random" width="16" class="circle">
-                <a href="#" class="text-bold" onclick="Router.navigate('repository', {repoId:'${repo.id}'})">${repo.name}</a>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-        
-        <div class="Box">
-          <div class="Box-header">
-            <h3 class="Box-title">Recent Activity</h3>
-          </div>
-          <div class="Box-body small">
-            <div class="TimelineItem TimelineItem--condensed">
-              <div class="TimelineItem-badge">🔍</div>
-              <div class="TimelineItem-body">Verified trench logs in <b>Pompeii</b></div>
-            </div>
-            <div class="TimelineItem TimelineItem--condensed">
-              <div class="TimelineItem-badge">⭐</div>
-              <div class="TimelineItem-body">Starred <b>Knossos Palace</b></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <div class="Subhead">
-          <div class="Subhead-heading">Project Feed</div>
-        </div>
-        
-        ${State.repositories.map(repo => {
-          const lastCommit = repo.engine.store.commits[repo.currentHash];
-          return `
-            <div class="Box mb-4 p-3">
-              <div class="d-flex flex-items-center mb-2">
-                <img class="avatar mr-2" src="https://i.pravatar.cc/40?u=${lastCommit.author}" width="32" height="32">
-                <div class="f6">
-                  <span class="text-bold">${lastCommit.author}</span> pushed to 
-                  <a href="#" class="text-bold" onclick="Router.navigate('repository', {repoId:'${repo.id}'})">${repo.name}</a>
-                </div>
-              </div>
-              <div class="Box p-3 color-bg-subtle">
-                <div class="text-bold mb-1">${lastCommit.message}</div>
-                <div class="f6 color-fg-muted">Hash: ${repo.currentHash.substring(0, 7)} • ${repo.siteInfo.period}</div>
-              </div>
-            </div>
-          `;
-        }).join('')}
-      </section>
-    </div>
-  `;
-  container.innerHTML = html;
-}
-
-function renderRepository(container) {
-  const repo = State.activeRepo;
-  if (!repo) return;
-
-  const lastCommit = repo.engine.store.commits[repo.currentHash];
-  const tree = repo.engine.store.trees[lastCommit.treeId];
-
-  container.innerHTML = `
-    <div class="page-header d-flex flex-justify-between">
-      <div>
-        <nav aria-label="Breadcrumb">
-          <ol>
-            <li class="breadcrumb-item"><a href="#">archeo-community</a></li>
-            <li class="breadcrumb-item breadcrumb-item-selected">${repo.name}</li>
-          </ol>
-        </nav>
-        <h2 class="f3 text-normal">
-          <svg class="octicon color-fg-muted mr-1" viewBox="0 0 16 16" width="16" height="16"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7 portfolio 1 1 0 0 0 .714 1.7h1.75a.75.75 0 0 1 0 1.5h-1.75A2.5 2.5 0 0 1 2 13.5Zm10.5 8.5V1.5H4.5a1 1 0 0 0-1 1V13a.5.5 0 0 1-.5.5.5.5 0 0 1-.5-.5V2.5a2.5 2.5 0 0 1 2.5-2.5h7.5A.75.75 0 0 1 13 1.5v11.5a.75.75 0 0 1-.75.75H12.5v1.5h.75A1.5 1.5 0 0 0 14.75 13.25V1.75A1.5 1.5 0 0 0 13.25.25h-8.75A2.5 2.5 0 0 0 2 2.75v10.5A2.5 2.5 0 0 0 4.5 16h8.75a.75.75 0 0 0 .75-.75V11Z"></path></svg>
-          <span class="text-bold">${repo.name}</span>
-          <span class="Label Label--secondary v-align-middle ml-1">Public</span>
-        </h2>
-      </div>
-      <div class="d-flex gap-2 flex-items-start">
-        <button class="btn btn-sm"><svg class="octicon mr-1" viewBox="0 0 16 16" width="16" height="16"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"></path></svg>Star ${repo.stars}</button>
-        <button class="btn btn-sm"><svg class="octicon mr-1" viewBox="0 0 16 16" width="16" height="16"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a3.75 3.75 0 0 1-3.75 3.75H5v1.628a2.25 2.25 0 1 1-1.5 0V9.122a3.75 3.75 0 0 1 3.75-3.75H5.372Z"></path></svg>Fork ${repo.forks}</button>
-      </div>
-    </div>
-
-    <div class="UnderlineNav">
-      <div class="UnderlineNav-item selected" onclick="Router.navigate('repository')">Code</div>
-      <div class="UnderlineNav-item">Issues <span class="Counter">${repo.issues}</span></div>
-      <div class="UnderlineNav-item">Pull requests</div>
-      <div class="UnderlineNav-item" onclick="open3DViewerByHash('${repo.currentHash}')">3D Stratigraphy</div>
-      <div class="UnderlineNav-item">Settings</div>
-    </div>
-
-    <div class="layout-main">
-      <section>
-        <div class="Box mb-3">
-          <div class="Box-header d-flex flex-justify-between flex-items-center">
-            <div class="d-flex flex-items-center gap-2">
-              <img src="https://i.pravatar.cc/24?u=${lastCommit.author}" class="circle">
-              <span class="text-bold">${lastCommit.author}</span>
-              <span class="color-fg-muted">${lastCommit.message}</span>
-            </div>
-            <div class="f6 color-fg-muted">
-              ${lastCommit.timestamp.split('T')[0]}
-            </div>
-          </div>
-          <div class="Box-body p-0">
-            ${tree.map(item => `
-              <div class="Box-row d-flex flex-justify-between py-2">
-                <div class="d-flex flex-items-center gap-2">
-                  <span class="file-icon">${item.name.endsWith('.json') ? '📄' : '📝'}</span>
-                  <a href="#" onclick="viewBlob('${item.oid}')">${item.name}</a>
-                </div>
-                <div class="color-fg-muted f6">Update logs</div>
-                <div class="color-fg-muted f6">2 hours ago</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-        
-        <div class="Box">
-          <div class="markdown-body" id="readme-content">
-            ${marked.parse(repo.engine.store.blobs[tree.find(t => t.name === 'README.md').oid] || '# Empty README')}
-          </div>
-        </div>
-      </section>
-
-      <aside>
-        <div class="mb-4">
-          <h4 class="f5 mb-2">About</h4>
-          <p class="f6">${repo.siteInfo.region} • ${repo.siteInfo.period}</p>
-          <div class="mt-2">
-            <span class="Label Label--secondary mr-1">Archaeology</span>
-            <span class="Label Label--secondary mr-1">GIS</span>
-          </div>
-        </div>
-        <hr>
-        <div class="mb-4">
-          <h4 class="f5 mb-2">Commit History</h4>
-          <div id="commit-mini-list">
-            ${repo.commits.slice(-5).reverse().map(hash => {
-              const c = repo.engine.store.commits[hash];
-              return `<div class="f6 mb-2 border-bottom pb-1">
-                <a href="#" class="text-bold" onclick="Router.navigate('commit', {commitHash:'${hash}'})">${hash.substring(0,7)}</a>
-                <div class="color-fg-muted">${c.message}</div>
-              </div>`;
-            }).join('')}
-          </div>
-        </div>
-      </aside>
-    </div>
-  `;
-}
-
-/**
- * 3D STRATIGRAPHY VIEWER (ADVANCED)
- */
-function open3DViewerByHash(hash) {
-  const commit = State.activeRepo.engine.store.commits[hash];
-  const tree = State.activeRepo.engine.store.trees[commit.treeId];
-  const stratEntry = tree.find(t => t.name === 'stratigraphy.json');
-  const stratData = State.activeRepo.engine.store.blobs[stratEntry.oid].data;
-
-  const overlay = document.createElement('div');
-  overlay.className = 'overlay-3d';
-  overlay.innerHTML = `
-    <div class="viewer-toolbar">
-      <div>
-        <h3 class="f4 mb-0">${State.activeRepo.name} — Spatial Stratigraphy</h3>
-        <p class="f6 mb-0 color-fg-muted">Viewing snapshot ${hash.substring(0,7)}</p>
-      </div>
-      <button class="btn btn-danger btn-sm" id="close-3d">Close Viewer</button>
-    </div>
-    <div id="canvas-container"></div>
-    <div style="position:absolute; bottom:20px; right:20px; background:rgba(0,0,0,0.7); padding:15px; border-radius:8px;">
-       <h4 class="f6 mb-2">Legend</h4>
-       ${stratData.map(l => `<div class="f6 d-flex flex-items-center gap-2"><div style="width:12px;height:12px;background:${l.color}"></div> ${l.name}</div>`).join('')}
-    </div>
-  `;
-  document.body.appendChild(overlay);
-  
-  initThreeJS(stratData);
-
-  document.getElementById('close-3d').onclick = () => {
-    overlay.remove();
-  };
-}
-
-function initThreeJS(data) {
-  const container = document.getElementById('canvas-container');
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x050505);
-  
-  const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  container.appendChild(renderer.domElement);
-
-  // Lighting
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-  scene.add(ambientLight);
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-  directionalLight.position.set(5, 10, 7);
-  scene.add(directionalLight);
-
-  // Stratigraphy Model
-  const group = new THREE.Group();
-  let currentY = 0;
-  
-  data.forEach((layer, index) => {
-    const height = 0.5 + (layer.artifacts / 10);
-    const geometry = new THREE.BoxGeometry(4, height, 4);
-    const material = new THREE.MeshStandardMaterial({ 
-      color: layer.color,
-      roughness: 0.8,
-      metalness: 0.1,
-      transparent: true,
-      opacity: 0.9
-    });
-    const cube = new THREE.Mesh(geometry, material);
-    cube.position.y = currentY - (height / 2);
-    
-    // Add wireframe
-    const geo = new THREE.EdgesGeometry(geometry);
-    const mat = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 });
-    const wireframe = new THREE.LineSegments(geo, mat);
-    cube.add(wireframe);
-    
-    group.add(cube);
-    currentY -= (height + 0.1);
-  });
-  
-  scene.add(group);
-  camera.position.z = 8;
-  camera.position.y = -2;
-
-  function animate() {
-    requestAnimationFrame(animate);
-    group.rotation.y += 0.005;
-    renderer.render(scene, camera);
-  }
-  animate();
-
-  window.addEventListener('resize', () => {
-    camera.aspect = container.clientWidth / container.clientHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
-  });
-}
-
-/**
- * HEATMAP COMPONENT
- */
-function renderProfile(container) {
-  const user = State.currentUser;
-  container.innerHTML = `
-    <div class="layout-sidebar">
-      <section>
-        <img src="${user.avatar}" class="avatar circle mb-3" width="296">
-        <h1 class="vcard-names">
-          <span class="vcard-fullname d-block">${user.name}</span>
-          <span class="vcard-username d-block color-fg-muted">${user.id}</span>
-        </h1>
-        <button class="btn btn-block mt-3">Follow</button>
-        <div class="mt-3 f6">
-          <div>📍 Cairo, Egypt</div>
-          <div>📧 jane.doe@archeo.edu</div>
-        </div>
-      </section>
-      
-      <section>
-        <div class="Subhead mt-0">
-          <div class="Subhead-heading">Overview</div>
-        </div>
-        
-        <div class="Box p-3 mb-4">
-          <div class="f6 mb-2">342 contributions in the last year</div>
-          <div class="contribution-graph">
-            ${user.contributions.map(level => `<div class="graph-day" data-level="${level}"></div>`).join('')}
-          </div>
-          <div class="d-flex flex-justify-end mt-2 f6 color-fg-muted gap-1">
-            Less <div class="graph-day"></div><div class="graph-day" data-level="1"></div><div class="graph-day" data-level="2"></div><div class="graph-day" data-level="3"></div><div class="graph-day" data-level="4"></div> More
-          </div>
-        </div>
-
-        <h3 class="f4 mb-2">Pinned Repositories</h3>
-        <div class="d-grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
-          ${State.repositories.slice(0, 4).map(repo => `
-            <div class="Box p-3">
-              <a href="#" class="text-bold" onclick="Router.navigate('repository', {repoId:'${repo.id}'})">${repo.name}</a>
-              <div class="f6 color-fg-muted mt-2">${repo.siteInfo.period} Excavation Site</div>
-            </div>
-          `).join('')}
-        </div>
-      </section>
-    </div>
-  `;
-}
-
-/**
- * GLOBAL MAP VIEW
- */
-function renderMap(container) {
-  container.innerHTML = `
-    <div class="Subhead">
-      <div class="Subhead-heading">Global Excavation Index</div>
-    </div>
-    <div id="global-map"></div>
-    <div class="Box mt-4 p-3">
-       <div class="d-flex flex-justify-between">
-          <span>Active Nodes: ${SITES_REGISTRY.length}</span>
-          <span>Last Sync: Just now</span>
-       </div>
-    </div>
-  `;
-  
-  setTimeout(() => {
-    const map = L.map('global-map').setView([20, 0], 2);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap'
-    }).addTo(map);
-
-    SITES_REGISTRY.forEach(site => {
-      const marker = L.circleMarker([site.lat, site.lng], {
-        radius: 8,
-        fillColor: "#58a6ff",
-        color: "#fff",
-        weight: 1,
-        opacity: 1,
-        fillOpacity: 0.8
-      }).addTo(map);
-      
-      marker.bindPopup(`
-        <div class="map-popup-card">
-          <h4 style="margin:0">${site.name}</h4>
-          <p style="margin:4px 0">${site.region}<br><b>Period:</b> ${site.period}</p>
-          <button class="btn btn-sm btn-primary" onclick="Router.navigate('repository', {repoId:'${site.id}'})">View Data</button>
-        </div>
-      `);
-    });
-  }, 100);
-}
-
-/**
- * TOAST NOTIFICATIONS
- */
-function showToast(message, type = 'success') {
-  const root = document.getElementById('toast-root');
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.innerHTML = `
-    <span>${type === 'success' ? '✅' : 'ℹ️'}</span>
-    <span>${message}</span>
-  `;
-  root.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
-}
-
-/**
- * BOOTSTRAP
- */
-window.onload = () => {
-  seedData();
-  
-  // Link handling
-  document.addEventListener('click', e => {
-    const link = e.target.closest('[data-route]');
-    if (link) {
-      e.preventDefault();
-      Router.navigate(link.getAttribute('data-route'));
-    }
-  });
-
-  // Global Search logic
-  const searchInput = document.getElementById('global-search');
-  searchInput.onkeyup = (e) => {
-    if (e.key === 'Enter') {
-      const query = e.target.value.toLowerCase();
-      const match = State.repositories.find(r => r.name.toLowerCase().includes(query));
-      if (match) {
-        Router.navigate('repository', { repoId: match.id });
-      } else {
-        showToast('No site found with that name', 'info');
-      }
-    }
-  };
-
-  render();
-  showToast('ArcheoHub Engine Initialized', 'success');
-};
+// Start the Engine
+App.init();
 </script>
 </body>
 </html>
