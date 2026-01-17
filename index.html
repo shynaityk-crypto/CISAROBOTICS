@@ -3,519 +3,769 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ArcheoHub Sovereign — The Global Distributed Heritage Protocol</title>
+  <title>ArcheoHub — Global Archaeological Collaboration Platform</title>
 
+  <!-- Primer CSS -->
   <link rel="stylesheet" href="https://unpkg.com/@primer/css@^21.0.0/dist/primer.css">
+
+  <!-- Leaflet for maps -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- noUiSlider for timeline -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
-  <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Three.js for 3D stratigraphy viewer -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
   <style>
-    /* -------------------------------------------------------------------------
-       EXOTIC HUB THEME (Professional Dark Mode)
-       ------------------------------------------------------------------------- */
-    :root {
-      --color-canvas-default: #010409;
-      --color-canvas-subtle: #0d1117;
-      --color-border-default: #30363d;
-      --color-accent-emphasis: #1f6feb;
-      --color-success-emphasis: #238636;
-      --glow-gold: 0 0 15px rgba(210, 153, 34, 0.4);
+    :root { 
+      --accent-primary: #238636; 
+      --accent-secondary: #58a6ff;
+      --muted: #8b949e; 
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --border: #30363d;
+      --text-primary: #c9d1d9;
+      --text-bright: #f0f6fc;
+      --danger: #da3633;
+      --warning: #d29922;
+      --success: #2da44e;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
-    body { background-color: var(--color-canvas-default); color: #c9d1d9; overflow-x: hidden; }
     
-    /* Global Layout */
-    .app-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
-    .main-viewport { flex: 1; padding: 32px; max-width: 1400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
-
-    /* Component: Global Header */
-    .Header { background-color: var(--color-canvas-subtle); border-bottom: 1px solid var(--color-border-default); position: sticky; top: 0; z-index: 1000; }
-    .brand-title { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; color: #fff; text-decoration: none; }
-    .nav-link { color: #8b949e; transition: 0.2s; cursor: pointer; }
-    .nav-link:hover { color: #fff; }
-
-    /* Component: Site Map */
-    #world-map { height: 500px; border-radius: 12px; border: 1px solid var(--color-border-default); margin-bottom: 24px; box-shadow: var(--glow-gold); }
-
-    /* Component: Timeline Slider */
-    .timeline-container { background: var(--color-canvas-subtle); padding: 40px 60px; border-radius: 12px; border: 1px solid var(--color-border-default); margin-bottom: 32px; }
-    #timeline-slider { margin-top: 20px; }
-    .noUi-connect { background: var(--color-accent-emphasis); }
-
-    /* Component: Site Cards (The "Repo" Feel) */
-    .site-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-    .site-card { 
-      background: var(--color-canvas-subtle); border: 1px solid var(--color-border-default); 
-      border-radius: 8px; padding: 16px; transition: transform 0.2s, border-color 0.2s;
-      cursor: pointer; position: relative; overflow: hidden;
+    * { box-sizing: border-box; }
+    
+    body { 
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+      margin: 0;
+      padding: 0;
     }
-    .site-card:hover { transform: translateY(-4px); border-color: #8b949e; }
-    .site-card::after { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--color-accent-emphasis); }
-
-    /* Auth Views */
-    .auth-overlay { 
-      position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; 
-      display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);
+    
+    /* Enhanced Header */
+    header.Header { 
+      background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(22,27,34,0.95) 100%);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
-    .auth-box { width: 400px; padding: 32px; background: var(--color-canvas-subtle); border: 1px solid var(--color-border-default); border-radius: 12px; }
-
-    /* 3D Context Viewer */
-    .viewer-3d-overlay { position: fixed; inset: 0; background: #000; z-index: 10001; display: flex; flex-direction: column; }
-    #canvas-target { flex: 1; }
-
-    /* Profile UI */
-    .profile-header { display: flex; align-items: center; gap: 24px; margin-bottom: 32px; }
-    .profile-avatar { width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--color-border-default); object-fit: cover; }
-
-    /* Animations */
-    .fade-in { animation: fadeIn 0.4s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .brand { 
+      font-weight: 800;
+      font-size: 1.25rem;
+      margin-right: 16px;
+      background: linear-gradient(135deg, #58a6ff 0%, #238636 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
+    
+    .Header-link { 
+      color: var(--text-primary);
+      margin-right: 16px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: var(--transition);
+      font-weight: 500;
+    }
+    
+    .Header-link:hover { 
+      color: var(--text-bright);
+      background: rgba(88,166,255,0.1);
+      text-decoration: none;
+    }
+    
+    /* Enhanced Form Controls */
+    .form-control.input-contrast, .form-select { 
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: var(--transition);
+    }
+    
+    .form-control:focus, .form-select:focus {
+      border-color: var(--accent-secondary);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(88,166,255,0.1);
+    }
+    
+    /* Enhanced Box Component */
+    .Box { 
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+    
+    .Box:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    
+    .Box-row { 
+      border-top: 1px solid var(--border);
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: var(--transition);
+    }
+    
+    .Box-row:first-child { border-top: 0; }
+    
+    .Box-row:hover {
+      background: rgba(88,166,255,0.03);
+    }
+    
+    .Box-title { 
+      color: var(--text-bright);
+      padding: 16px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    /* Enhanced Labels */
+    .Label { 
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    
+    .Label--orange { background: #6f4a2e; color: #fff; }
+    .Label--blue { background: #0969da; color: #fff; }
+    .Label--green { background: var(--success); color: #fff; }
+    .Label--purple { background: #8250df; color: #fff; }
+    .Label--red { background: var(--danger); color: #fff; }
+    .Label--yellow { background: var(--warning); color: #000; }
+    
+    /* Enhanced Buttons */
+    .btn {
+      border-radius: 6px;
+      font-weight: 500;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    
+    .btn-primary { 
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: #2ea043;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(46,160,67,0.3);
+    }
+    
+    .btn-ghost { 
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+    
+    .btn-ghost:hover {
+      background: rgba(88,166,255,0.1);
+      border-color: var(--accent-secondary);
+    }
+    
+    /* Footer */
+    footer.footer { 
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding: 32px 0;
+      margin-top: 64px;
+      background: var(--bg-secondary);
+    }
+    
+    /* Layout */
+    .container-lg { 
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    
+    .two-col { 
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+    }
+    
+    @media (max-width:1000px){ 
+      .two-col { 
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* Enhanced Map */
+    #map { 
+      height: 600px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    
+    /* Repository Cards */
+    .repo-card {
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    
+    .repo-card:hover {
+      transform: translateX(4px);
+    }
+    
+    .repo-title { 
+      font-weight: 700;
+      color: var(--accent-secondary);
+      font-size: 1.05rem;
+    }
+    
+    .repo-title:hover {
+      text-decoration: underline;
+    }
+    
+    .muted { color: var(--muted); }
+    .text-bright { color: var(--text-bright); }
+    
+    /* Stats Cards */
+    .stat-card {
+      background: linear-gradient(135deg, rgba(88,166,255,0.1) 0%, rgba(35,134,54,0.1) 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      transition: var(--transition);
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(88,166,255,0.2);
+    }
+    
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #58a6ff 0%, #238636 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    /* Timeline */
+    #timeline { margin-top: 16px; }
+    
+    .noUi-connect {
+      background: linear-gradient(90deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
+    }
+    
+    /* Modal Overlay */
+    .overlay { 
+      position: fixed;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(2,6,23,0.92);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 12000;
+      animation: fadeIn 0.2s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .card-dark { 
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      animation: slideUp 0.3s ease;
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    /* Tabs */
+    .tabs { 
+      display: flex;
+      border-bottom: 2px solid var(--border);
+      padding: 0;
+    }
+    
+    .tabs .tab { 
+      cursor: pointer;
+      padding: 12px 20px;
+      border-radius: 6px 6px 0 0;
+      margin: 0 4px -2px 0;
+      font-weight: 500;
+      transition: var(--transition);
+      border-bottom: 2px solid transparent;
+    }
+    
+    .tabs .tab:hover {
+      background: rgba(88,166,255,0.05);
+    }
+    
+    .tabs .tab.selected { 
+      background: rgba(88,166,255,0.1);
+      border-bottom-color: var(--accent-secondary);
+      color: var(--text-bright);
+    }
+    
+    /* Contribution List */
+    .contrib-list { display: grid; gap: 12px; }
+    
+    /* Form Styling */
+    .form-compact label {
+      display: block;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    
+    .form-compact input,
+    .form-compact textarea,
+    .form-compact select {
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 6px;
+    }
+    
+    /* Toast Notifications */
+    #toast { 
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 14000;
+    }
+    
+    .toast-item {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      animation: slideInRight 0.3s ease;
+      min-width: 300px;
+    }
+    
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    /* Loading Spinner */
+    .spinner {
+      border: 3px solid var(--border);
+      border-top: 3px solid var(--accent-secondary);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Badge */
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(88,166,255,0.2);
+      color: var(--accent-secondary);
+    }
+    
+    /* Search Highlight */
+    .search-highlight {
+      background: rgba(210,153,34,0.2);
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .brand { font-size: 1rem; }
+      .stat-number { font-size: 2rem; }
+      #map { height: 400px; }
+    }
   </style>
 </head>
 <body>
 
-<div id="app-shell" class="app-wrapper">
-  <header class="Header px-4 py-3 d-flex flex-items-center flex-justify-between">
-    <div class="d-flex flex-items-center">
-      <a href="#" class="brand-title mr-4" onclick="App.router.go('explore')">ARCHEO<span style="color:var(--color-accent-emphasis)">HUB</span></a>
-      <nav class="d-none d-md-flex gap-3">
-        <a class="nav-link" onclick="App.router.go('explore')">Explore World</a>
-        <a class="nav-link" onclick="App.router.go('map')">Global Atlas</a>
-        <a class="nav-link" onclick="App.router.go('community')">Community Hub</a>
-      </nav>
+<header class="Header d-flex flex-justify-between flex-items-center p-3">
+  <div class="d-flex flex-items-center">
+    <a class="brand" href="#" data-route="explore">🏛️ ArcheoHub</a>
+    <div class="d-none d-md-block">
+      <a class="Header-link" href="#" data-route="explore">Explore</a>
+      <a class="Header-link" href="#" data-route="map">Global Map</a>
+      <a class="Header-link" href="#" data-route="issues">Issues</a>
+      <a class="Header-link" href="#" data-route="prs">Pull Requests</a>
     </div>
+  </div>
 
-    <div class="d-flex flex-items-center gap-3">
-      <div id="auth-nav-area">
-        </div>
-    </div>
-  </header>
+  <div style="flex:1; margin:0 16px; max-width: 600px;">
+    <input id="global-search" type="search" class="form-control input-contrast header-search-input" placeholder="🔍 Search sites, repos, commits..." aria-label="Search" />
+  </div>
 
-  <main class="main-viewport fade-in" id="view-target"></main>
+  <div class="d-flex flex-items-center gap-2">
+    <button id="theme-toggle" class="btn btn-ghost btn-sm" title="Toggle theme">🌗</button>
+    <button id="new-finding-btn" class="btn btn-primary btn-sm">+ New Finding</button>
 
-  <footer class="p-5 border-top border-default mt-5 text-center color-fg-muted f6">
-    <div class="mb-2">© 2026 The ArcheoHub Sovereign Protocol • Distributed Heritage Data</div>
-    <div class="d-flex flex-justify-center gap-3">
-      <a href="#">Documentation</a>
-      <a href="#">API</a>
-      <a href="#">Whitepaper</a>
-      <a href="#">KZ-Heritage-Vault</a>
-    </div>
-  </footer>
+    <details class="details-reset details-overlay" style="margin-left:8px;">
+      <summary id="avatar-summary" class="Header-link" aria-haspopup="menu" role="button" style="cursor: pointer;">
+        <img id="avatar-img" class="avatar avatar-user" src="https://avatars.githubusercontent.com/u/0?v=4" width="32" height="32" alt="@guest">
+      </summary>
+      <div class="dropdown-menu dropdown-menu-sw mt-2" style="width:260px;">
+        <div class="dropdown-header">Signed in as <strong id="user-email">guest</strong></div>
+        <a class="dropdown-item" href="#" data-route="profile">Your Profile</a>
+        <a class="dropdown-item" href="#" id="logout-btn">Sign Out</a>
+      </div>
+    </details>
+  </div>
+</header>
+
+<div class="container-lg">
+  <div id="app-root"></div>
 </div>
 
-<div id="modal-layer"></div>
-<div id="toast-container" style="position:fixed; bottom:20px; right:20px; z-index:11000;"></div>
+<!-- New Finding Modal -->
+<div id="new-finding-modal" class="overlay" hidden>
+  <div class="card-dark" style="width:720px; max-width:95%;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 style="margin:0">📋 New Archaeological Finding</h3>
+      <button id="close-new-finding" class="btn btn-ghost btn-sm">✕</button>
+    </div>
+    
+    <form id="new-finding-form" class="form-compact">
+      <div class="d-flex gap-2">
+        <input name="repo" placeholder="Repository path (e.g. asia/kazakhstan/tamgaly)" class="form-control form-control-sm" required />
+        <select name="type" class="form-select form-select-sm" style="width:180px;">
+          <option>Discovery</option>
+          <option>Analysis</option>
+          <option>Theory</option>
+          <option>Preservation</option>
+          <option>Maintenance</option>
+        </select>
+      </div>
+      
+      <div class="mt-2">
+        <input name="title" placeholder="Title of finding" class="form-control form-control-sm" required />
+      </div>
+
+      <div class="mt-2">
+        <input name="submitterEmail" placeholder="Your email (optional)" class="form-control form-control-sm" />
+      </div>
+
+      <div class="mt-2">
+        <textarea name="desc" placeholder="Description" class="form-control form-control-sm" rows="5"></textarea>
+      </div>
+      
+      <div class="mt-3 d-flex justify-content-end gap-2">
+        <button type="button" id="submit-finding" class="btn btn-primary">Submit Finding</button>
+      </div>
+    </form>
+
+    <hr style="margin:16px 0; border-color:var(--border);">
+    
+    <div style="margin-top:12px;">
+      <div style="font-weight:700; margin-bottom:8px;">📧 Send Direct Message</div>
+      <form action="https://formspree.io/f/xdakdvqo" method="POST" class="form-compact" target="_blank">
+        <label>
+          Your email:
+          <input type="email" name="email" class="form-control form-control-sm" />
+        </label>
+        <label>
+          Your message:
+          <textarea name="message" class="form-control form-control-sm" rows="4"></textarea>
+        </label>
+        <input type="hidden" name="_subject" value="ArcheoHub — New finding (direct form)" />
+        <div style="margin-top:12px; text-align:right;">
+          <button type="submit" class="btn btn-ghost">Send via Formspree</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Auth Modal -->
+<div id="auth-modal" class="overlay" hidden>
+  <div class="card-dark" style="width:420px; max-width:95%;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 style="margin:0" id="auth-title">🔐 Sign In</h3>
+      <button id="auth-close" class="btn btn-ghost btn-sm">✕</button>
+    </div>
+    <div>
+      <div class="mb-2 small muted" id="auth-note">Use any email address for demo sign-in (local only).</div>
+      <input id="auth-email" class="form-control form-control-sm mb-2" placeholder="you@email.com" />
+      <input id="auth-name" class="form-control form-control-sm mb-2" placeholder="Display name (optional)" />
+      <div class="d-flex justify-content-end gap-2 mt-3">
+        <button id="auth-submit" class="btn btn-primary">Sign In</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast"></div>
+
+<footer class="footer mt-5">
+  <div class="container-lg text-center">
+    <p class="mb-0">© 2026 ArcheoHub — Global Archaeological Collaboration Platform</p>
+    <p class="small muted">Contact: <a href="mailto:shyn.aityk@gmail.com" style="color: var(--accent-secondary);">shyn.aityk@gmail.com</a></p>
+  </div>
+</footer>
 
 <script>
+/* ============================================================================
+   ARCHEOHUB - ENHANCED GLOBAL ARCHAEOLOGICAL PLATFORM
+   
+   Core Features:
+   - Global archaeological site database with Kazakhstan focus
+   - Interactive mapping with Leaflet
+   - Git-like version control for excavation data
+   - 3D stratigraphy visualization with Three.js
+   - Issue tracking and pull requests
+   - Timeline filtering and data export
+   ============================================================================ */
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
 /**
- * ARCHEOHUB SOVEREIGN ENGINE
- * A Massive Unified Framework for Archaeological Version Control
+ * Generate unique identifier with prefix
+ * @param {string} prefix - Prefix for the ID
+ * @returns {string} Unique ID
  */
+function uid(prefix='id'){ 
+  return prefix + '-' + Math.random().toString(36).slice(2,11) + Date.now().toString(36);
+}
+
+/**
+ * Get current ISO timestamp
+ * @returns {string} ISO timestamp
+ */
+function now(){ 
+  return new Date().toISOString();
+}
+
+/**
+ * Save data to localStorage with error handling
+ * @param {string} key - Storage key
+ * @param {*} value - Value to store
+ */
+function saveLS(key, value){ 
+  try { 
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch(e){ 
+    console.warn('localStorage save error:', e);
+    toast('⚠️ Storage limit reached', 3000);
+  }
+}
+
+/**
+ * Load data from localStorage with fallback
+ * @param {string} key - Storage key
+ * @param {*} fallback - Fallback value
+ * @returns {*} Stored value or fallback
+ */
+function loadLS(key, fallback){ 
+  try{ 
+    const v = localStorage.getItem(key);
+    return v ? JSON.parse(v) : fallback;
+  } catch(e){ 
+    console.warn('localStorage load error:', e);
+    return fallback;
+  }
+}
+
+/**
+ * Display toast notification
+ * @param {string} msg - Message to display
+ * @param {number} ms - Duration in milliseconds
+ */
+function toast(msg, ms=3000){ 
+  const t = document.createElement('div');
+  t.className = 'toast-item';
+  t.textContent = msg;
+  document.getElementById('toast').appendChild(t);
+  setTimeout(() => {
+    t.style.animation = 'slideInRight 0.3s ease reverse';
+    setTimeout(() => t.remove(), 300);
+  }, ms);
+}
+
+/**
+ * Safely attach event listener
+ * @param {string|HTMLElement} target - Element or selector
+ * @param {string} event - Event name
+ * @param {Function} handler - Event handler
+ */
+function safeOn(target, event, handler){
+  if(!target) return;
+  let el = typeof target === 'string' ? document.querySelector(target) : target;
+  if(el && typeof el.addEventListener === 'function') {
+    el.addEventListener(event, handler);
+  }
+}
+
+/**
+ * Escape HTML to prevent XSS
+ * @param {string} s - String to escape
+ * @returns {string} Escaped string
+ */
+function escapeHTML(s){
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+/**
+ * Format number with commas
+ * @param {number} num - Number to format
+ * @returns {string} Formatted number
+ */
+function formatNumber(num) {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+// ============================================================================
+// FORMSPREE INTEGRATION
+// ============================================================================
+
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xdakdvqo';
+
+/**
+ * Send finding data to Formspree
+ * @param {Object} payload - Finding data
+ * @returns {Promise<Object>} Response object
+ */
+async function sendFindingToFormspree(payload){
+  try {
+    const res = await fetch(FORMSPREE_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        email: payload.email || '',
+        repo: payload.repoPath,
+        type: payload.type,
+        title: payload.title,
+        message: payload.desc,
+        author: payload.author,
+        time: payload.time,
+        _subject: `ArcheoHub — New finding: ${payload.title}`,
+        _replyto: payload.email || ''
+      })
+    });
+    
+    if(res.ok) return { ok: true };
+    
+    const text = await res.text().catch(() => null);
+    console.warn('Formspree response not ok', res.status, text);
+    return { ok: false, status: res.status, text };
+  } catch(err){
+    console.error('sendFindingToFormspree error', err);
+    return { ok: false, error: String(err) };
+  }
+}
+
+// ============================================================================
+// APPLICATION STATE
+// ============================================================================
 
 const App = {
-  state: {
-    user: null, // Logged in user object
-    currentView: 'explore',
-    sites: [],
-    filters: { yearRange: [-5000, 2026], search: '' },
-    repos: []
-  },
-
-  // INITIALIZATION
-  init: async function() {
-    this.auth.loadSession();
-    this.data.seedWorld();
-    this.router.sync();
-    this.ui.renderAuthNav();
-    console.log("ArcheoHub Sovereign Initialized. Nodes Active:", this.state.sites.length);
+  theme: localStorage.getItem('theme') || 'dark',
+  user: loadLS('archeo_user', null),
+  repos: loadLS('archeo_repos', null),
+  issues: loadLS('archeo_issues', null),
+  prs: loadLS('archeo_prs', null),
+  page: 'explore',
+  currentRepoId: null,
+  filter: { 
+    type: '', 
+    search: '', 
+    yearRange: [-10000, 2026],
+    region: ''
   }
 };
 
-/* =========================================================================
-   1. AUTHENTICATION SYSTEM
-   ========================================================================= */
-App.auth = {
-  saveSession: (user) => {
-    localStorage.setItem('archeo_user', JSON.stringify(user));
-    App.state.user = user;
-    App.ui.renderAuthNav();
-  },
-  loadSession: () => {
-    const saved = localStorage.getItem('archeo_user');
-    if (saved) App.state.user = JSON.parse(saved);
-  },
-  logout: () => {
-    localStorage.removeItem('archeo_user');
-    App.state.user = null;
-    location.reload();
-  },
-  signup: (username, pfp) => {
-    const user = {
-      username,
-      avatar: pfp || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
-      rank: 'Junior Field Researcher',
-      contributions: 0,
-      joined: new Date().getFullYear()
-    };
-    App.auth.saveSession(user);
-    App.ui.toast("Welcome to the Protocol, " + username);
-    App.router.go('explore');
-  }
-};
+document.documentElement.setAttribute('data-color-mode', App.theme);
 
-/* =========================================================================
-   2. WORLD DATABASE (Massive Data Seeding)
-   ========================================================================= */
-App.data = {
-  seedWorld: function() {
-    const rawData = [
-      // KAZAKHSTAN & CENTRAL ASIA
-      { id: 'kz-tamgaly', name: 'Tamgaly Petroglyphs', region: 'Kazakhstan', period: 'Bronze Age', lat: 43.8, lon: 75.5, year: -1500, description: 'Ancient rock art depicting solar deities and nomadic life.' },
-      { id: 'kz-otrar', name: 'Ancient Otrar', region: 'Kazakhstan', period: 'Medieval', lat: 42.8, lon: 68.3, year: 800, description: 'A massive Silk Road hub and center of learning.' },
-      { id: 'kz-berel', name: 'Berel Mounds', region: 'Kazakhstan', period: 'Saka Period', lat: 49.3, lon: 86.4, year: -400, description: 'The "Valley of Kings" with preserved permafrost burials.' },
-      { id: 'kz-issyk', name: 'Issyk Kurgan', region: 'Kazakhstan', period: 'Saka Period', lat: 43.3, lon: 77.4, year: -500, description: 'Discovery site of the Golden Man (Altin Adam).' },
-      
-      // EUROPE
-      { id: 'eu-stonehenge', name: 'Stonehenge', region: 'UK', period: 'Neolithic', lat: 51.1, lon: -1.8, year: -3000, description: 'Prehistoric megalithic structure aligned with the solstices.' },
-      { id: 'eu-pompeii', name: 'Pompeii City', region: 'Italy', period: 'Roman', lat: 40.7, lon: 14.4, year: 79, description: 'A city frozen in time by the eruption of Mt. Vesuvius.' },
-      { id: 'eu-altamira', name: 'Altamira Cave', region: 'Spain', period: 'Paleolithic', lat: 43.3, lon: -4.1, year: -34000, description: 'Upper Paleolithic cave paintings of wild mammals.' },
-      
-      // ASIA (China, Japan, SE Asia)
-      { id: 'as-terracotta', name: 'Terracotta Army', region: 'China', period: 'Qin Dynasty', lat: 34.3, lon: 109.2, year: -210, description: '8,000 unique life-sized soldiers guarding the First Emperor.' },
-      { id: 'as-nara', name: 'Heijo-kyo Palace', region: 'Japan', period: 'Nara Period', lat: 34.6, lon: 135.8, year: 710, description: 'The grand capital of classical Japanese civilization.' },
-      { id: 'as-angkor', name: 'Angkor Wat', region: 'Cambodia', period: 'Khmer Empire', lat: 13.4, lon: 103.8, year: 1150, description: 'The largest religious monument in the entire world.' },
-      
-      // AMERICAS (USA, Canada, South America)
-      { id: 'am-machu', name: 'Machu Picchu', region: 'Peru', period: 'Inca Empire', lat: -13.1, lon: -72.5, year: 1450, description: 'The citadel in the clouds, a masterpiece of Incan masonry.' },
-      { id: 'am-chaco', name: 'Chaco Canyon', region: 'USA', period: 'Puebloan', lat: 36.0, lon: -107.9, year: 900, description: 'Center of ancestral Puebloan culture in New Mexico.' },
-      { id: 'am-lanse', name: 'L\'Anse aux Meadows', region: 'Canada', period: 'Viking Age', lat: 51.5, lon: -55.5, year: 1000, description: 'Evidence of Norse exploration of North America.' },
-      { id: 'am-teotihuacan', name: 'Pyramid of the Sun', region: 'Mexico', period: 'Teotihuacan', lat: 19.6, lon: -98.8, year: 200, description: 'One of the most architecturally significant Mesoamerican pyramids.' }
-    ];
+// ============================================================================
+// DATA SEEDING - COMPREHENSIVE GLOBAL ARCHAEOLOGICAL SITES
+// ============================================================================
 
-    // Procedural Scaling: Generate 50 more simulated sites to populate the map
-    for(let i=0; i<50; i++) {
-      rawData.push({
-        id: `gen-${i}`,
-        name: `Research Site Alpha-${i}`,
-        region: 'Global Exploration',
-        period: 'Various',
-        lat: (Math.random() * 140) - 70,
-        lon: (Math.random() * 300) - 150,
-        year: Math.floor(Math.random() * 6000) - 4000,
-        description: 'Auto-detected heritage node pending verification.'
-      });
-    }
-    this.App.state.sites = rawData;
-  }
-};
-
-/* =========================================================================
-   3. ROUTING & UI RENDERER
-   ========================================================================= */
-App.router = {
-  go: function(view, id = null) {
-    App.state.currentView = view;
-    App.state.activeId = id;
-    this.render();
-  },
-  sync: function() { this.render(); },
-  render: function() {
-    const target = document.getElementById('view-target');
-    target.innerHTML = '';
+if(!App.repos){
+  App.repos = [];
+  
+  /**
+   * Comprehensive global archaeological sites database
+   * Format: [Name, Country, Region, Lat, Lon, Period, Description]
+   */
+  const GLOBAL_SITES = [
+    // KAZAKHSTAN (Central Asia)
+    ["Tamgaly Petroglyphs", "Kazakhstan", "Central Asia", 43.8056, 75.5386, "Bronze Age", "UNESCO World Heritage petroglyphs from 2nd millennium BCE"],
+    ["Otrar Ancient City", "Kazakhstan", "Central Asia", 42.9000, 68.3167, "Medieval", "Major Silk Road city, birthplace of Al-Farabi"],
+    ["Bozok Ancient Settlement", "Kazakhstan", "Central Asia", 51.1801, 71.4460, "Medieval", "Medieval settlement near modern Astana"],
+    ["Taraz Archaeological Complex", "Kazakhstan", "Central Asia", 42.9000, 71.3667, "Medieval", "Ancient Silk Road city dating to 6th century"],
+    ["Almaty Kurgan Burial Mounds", "Kazakhstan", "Central Asia", 43.2220, 76.8512, "Iron Age", "Scythian-Saka burial mounds"],
+    ["Berel Burial Mounds", "Kazakhstan", "Central Asia", 49.3333, 86.0833, "Iron Age", "Scythian royal burials with preserved horses"],
+    ["Issyk Kurgan", "Kazakhstan", "Central Asia", 43.3500, 77.4333, "Iron Age", "Golden Warrior discovery site"],
+    ["Akyrtas Palace Complex", "Kazakhstan", "Central Asia", 42.7833, 73.6167, "Medieval", "Mysterious medieval palace ruins"],
+    ["Sauran Fortress", "Kazakhstan", "Central Asia", 42.3167, 68.6500, "Medieval", "Medieval fortress on the Silk Road"],
+    ["Merke Settlement", "Kazakhstan", "Central Asia", 42.8833, 73.1667, "Bronze Age", "Bronze Age settlement"],
     
-    switch(App.state.currentView) {
-      case 'explore': App.ui.views.explore(target); break;
-      case 'map': App.ui.views.map(target); break;
-      case 'profile': App.ui.views.profile(target); break;
-      case 'auth': App.ui.views.auth(target); break;
-      case 'repo': App.ui.views.repo(target, App.state.activeId); break;
-    }
-  }
-};
-
-App.ui = {
-  // Global components
-  toast: (msg) => {
-    const t = document.createElement('div');
-    t.className = 'Box Box--condensed p-3 mb-2 color-shadow-large color-bg-accent-emphasis color-fg-on-emphasis fade-in';
-    t.innerText = msg;
-    document.getElementById('toast-container').appendChild(t);
-    setTimeout(() => t.remove(), 4000);
-  },
-
-  renderAuthNav: () => {
-    const area = document.getElementById('auth-nav-area');
-    if (App.state.user) {
-      area.innerHTML = `
-        <div class="d-flex flex-items-center gap-2">
-          <span class="d-none d-md-block small color-fg-muted">${App.state.user.username}</span>
-          <img src="${App.state.user.avatar}" class="avatar circle pointer" width="32" height="32" onclick="App.router.go('profile')">
-          <button class="btn btn-sm btn-danger" onclick="App.auth.logout()">Out</button>
-        </div>
-      `;
-    } else {
-      area.innerHTML = `<button class="btn btn-primary btn-sm" onclick="App.router.go('auth')">Join Protocol</button>`;
-    }
-  },
-
-  views: {
-    auth: (target) => {
-      target.innerHTML = `
-        <div class="auth-overlay">
-          <div class="auth-box fade-in">
-            <h2 class="mb-3">Create Researcher ID</h2>
-            <p class="color-fg-muted mb-4">Join the global distributed excavation network.</p>
-            <div class="form-group">
-              <label>Full Name</label>
-              <input type="text" id="reg-name" class="form-control input-block" placeholder="Dr. Jones">
-            </div>
-            <div class="form-group">
-              <label>Avatar URL (Optional)</label>
-              <input type="text" id="reg-pfp" class="form-control input-block" placeholder="https://...">
-            </div>
-            <button class="btn btn-primary btn-block mt-4" onclick="App.auth.signup(document.getElementById('reg-name').value, document.getElementById('reg-pfp').value)">Initialize Account</button>
-            <button class="btn btn-invisible btn-block mt-2" onclick="App.router.go('explore')">Cancel</button>
-          </div>
-        </div>
-      `;
-    },
-
-    explore: (target) => {
-      target.innerHTML = `
-        <div class="timeline-container">
-          <div class="d-flex flex-justify-between flex-items-center mb-2">
-            <h3 class="f4">Chronological Horizon</h3>
-            <span class="Label Label--info" id="year-label">-5000 BC to 2026 AD</span>
-          </div>
-          <div id="timeline-slider"></div>
-          <div class="mt-4">
-             <input type="text" class="form-control input-block input-lg color-bg-subtle" placeholder="Search by site name, culture, or region (e.g. 'Kazakhstan', 'Inca')..." id="site-search">
-          </div>
-        </div>
-
-        <div class="site-grid" id="site-results"></div>
-      `;
-
-      // Init Timeline Slider
-      const slider = document.getElementById('timeline-slider');
-      noUiSlider.create(slider, {
-        start: [-5000, 2026],
-        connect: true,
-        range: { 'min': -10000, 'max': 2026 },
-        step: 10
-      });
-
-      const updateResults = () => {
-        const [start, end] = slider.noUiSlider.get();
-        document.getElementById('year-label').innerText = `${Math.round(start)} to ${Math.round(end)}`;
-        
-        const query = document.getElementById('site-search').value.toLowerCase();
-        const filtered = App.state.sites.filter(s => {
-          const matchYear = s.year >= start && s.year <= end;
-          const matchText = s.name.toLowerCase().includes(query) || s.region.toLowerCase().includes(query);
-          return matchYear && matchText;
-        });
-
-        document.getElementById('site-results').innerHTML = filtered.map(s => `
-          <div class="site-card fade-in" onclick="App.router.go('repo', '${s.id}')">
-            <div class="f3 text-bold color-fg-accent">${s.name}</div>
-            <div class="f6 color-fg-muted mb-2">${s.region} • ${s.period}</div>
-            <p class="f6">${s.description}</p>
-            <div class="mt-3 d-flex gap-2">
-              <span class="Label Label--secondary">${s.year < 0 ? Math.abs(s.year)+' BC' : s.year+' AD'}</span>
-            </div>
-          </div>
-        `).join('');
-      };
-
-      slider.noUiSlider.on('update', updateResults);
-      document.getElementById('site-search').oninput = updateResults;
-      updateResults();
-    },
-
-    map: (target) => {
-      target.innerHTML = `
-        <div class="Subhead"><div class="Subhead-heading">Global GIS Distribution</div></div>
-        <div id="world-map"></div>
-        <div class="Box p-3">
-          <div class="d-flex flex-justify-between">
-            <div><strong>Active Nodes:</strong> ${App.state.sites.length}</div>
-            <div><strong>Protocol Status:</strong> Synced</div>
-          </div>
-        </div>
-      `;
-      
-      setTimeout(() => {
-        const map = L.map('world-map').setView([30, 0], 2);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-        App.state.sites.forEach(s => {
-          const marker = L.circleMarker([s.lat, s.lon], { radius: 6, color: '#1f6feb', fillOpacity: 0.8 }).addTo(map);
-          marker.bindPopup(`<b>${s.name}</b><br>${s.region}<br><button class="btn btn-sm mt-2" onclick="App.router.go('repo', '${s.id}')">Open Repo</button>`);
-        });
-      }, 100);
-    },
-
-    profile: (target) => {
-      const u = App.state.user;
-      if (!u) return App.router.go('auth');
-      target.innerHTML = `
-        <div class="profile-header">
-          <img src="${u.avatar}" class="profile-avatar">
-          <div>
-            <h1 class="f1-light">${u.username}</h1>
-            <p class="color-fg-muted">${u.rank} • Joined ${u.joined}</p>
-            <div class="d-flex gap-2 mt-2">
-              <button class="btn btn-sm">Edit Profile</button>
-              <button class="btn btn-sm btn-primary">Publish Findings</button>
-            </div>
-          </div>
-        </div>
-        
-        <div class="layout-main d-flex gap-4">
-          <div class="col-8">
-            <h3 class="mb-3">Contributions</h3>
-            <div class="Box p-5 text-center color-fg-muted">
-              No public findings yet. Start an excavation branch to begin.
-            </div>
-          </div>
-          <div class="col-4">
-             <div class="Box p-3">
-               <h4 class="mb-2">Stats</h4>
-               <ul class="list-style-none">
-                 <li class="mb-1">⭐ Stars: 0</li>
-                 <li class="mb-1">🍴 Forks: 0</li>
-                 <li class="mb-1">🌍 Sites Visited: 4</li>
-               </ul>
-             </div>
-          </div>
-        </div>
-      `;
-    },
-
-    repo: (target, siteId) => {
-      const site = App.state.sites.find(s => s.id === siteId);
-      target.innerHTML = `
-        <div class="repo-header mb-4">
-          <div class="d-flex flex-justify-between flex-items-start">
-            <div>
-              <nav aria-label="Breadcrumb"><ol>
-                <li class="breadcrumb-item"><a href="#" onclick="App.router.go('explore')">World</a></li>
-                <li class="breadcrumb-item breadcrumb-item-selected">${site.name}</li>
-              </ol></nav>
-              <h2 class="f1-light mt-2">${site.name} <span class="Label Label--secondary v-align-middle">Public</span></h2>
-            </div>
-            <div class="btn-group">
-              <button class="btn btn-sm">Watch</button>
-              <button class="btn btn-sm">Star</button>
-              <button class="btn btn-sm">Fork</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="UnderlineNav mb-4">
-          <div class="UnderlineNav-body">
-            <button class="UnderlineNav-item selected">Code (Layers)</button>
-            <button class="UnderlineNav-item">Issues <span class="Counter">0</span></button>
-            <button class="UnderlineNav-item">Pull Requests</button>
-            <button class="UnderlineNav-item">Actions</button>
-          </div>
-        </div>
-
-        <div class="Box mb-4">
-          <div class="Box-header d-flex flex-justify-between">
-            <span><strong>main</strong> branch</span>
-            <button class="btn btn-sm btn-primary" onclick="App.ui.launch3D()">Open in 3D Context</button>
-          </div>
-          <div class="Box-row d-flex flex-justify-between">
-             <div><span class="color-fg-accent mr-2">📁</span> stratigraphy/</div>
-             <span class="color-fg-muted f6">Initial Commit</span>
-          </div>
-          <div class="Box-row d-flex flex-justify-between">
-             <div><span class="color-fg-accent mr-2">📄</span> metadata.json</div>
-             <span class="color-fg-muted f6">Update site year</span>
-          </div>
-          <div class="Box-row d-flex flex-justify-between">
-             <div><span class="color-fg-accent mr-2">📝</span> README.md</div>
-             <span class="color-fg-muted f6">Add site description</span>
-          </div>
-        </div>
-
-        <div class="Box p-4">
-          <h3>README.md</h3>
-          <hr>
-          <p>${site.description}</p>
-          <p class="mt-3"><strong>Period:</strong> ${site.period}</p>
-          <p><strong>Coordinates:</strong> ${site.lat}, ${site.lon}</p>
-        </div>
-      `;
-    }
-  },
-
-  /* =========================================================================
-     4. 3D CONTEXT ENGINE
-     ========================================================================= */
-  launch3D: () => {
-    const overlay = document.createElement('div');
-    overlay.className = 'viewer-3d-overlay';
-    overlay.innerHTML = `
-      <div class="p-3 d-flex flex-justify-between border-bottom border-default">
-        <h3 class="f4">Spatial Stratigraphy Viewer</h3>
-        <button class="btn btn-danger btn-sm" onclick="this.parentElement.parentElement.remove()">Close</button>
-      </div>
-      <div id="canvas-target"></div>
-    `;
-    document.body.appendChild(overlay);
-
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x050505);
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.getElementById('canvas-target').appendChild(renderer.domElement);
-
-    // Create a mock excavation trench
-    const layers = [
-      { color: 0x4b3621, h: 0.5 }, // Topsoil
-      { color: 0x8b4513, h: 1.2 }, // Bronze Age Layer
-      { color: 0xd2b48c, h: 0.8 }  // Natural soil
-    ];
+    // EGYPT
+    ["Giza Plateau", "Egypt", "Africa", 29.9792, 31.1342, "Old Kingdom", "Great Pyramids and Sphinx complex"],
+    ["Valley of the Kings", "Egypt", "Africa", 25.7402, 32.6014, "New Kingdom", "Royal tombs including Tutankhamun"],
+    ["Karnak Temple Complex", "Egypt", "Africa", 25.7188, 32.6573, "Middle Kingdom", "Largest ancient religious site"],
+    ["Abu Simbel", "Egypt", "Africa", 22.3372, 31.6258, "New Kingdom", "Rock temples of Ramesses II"],
+    ["Saqqara Necropolis", "Egypt", "Africa", 29.8711, 31.2169, "Old Kingdom", "Step Pyramid of Djoser"],
     
-    let y = 0;
-    layers.forEach(l => {
-      const geo = new THREE.BoxGeometry(10, l.h, 10);
-      const mat = new THREE.MeshStandardMaterial({ color: l.color });
-      const cube = new THREE.Mesh(geo, mat);
-      cube.position.y = y;
-      scene.add(cube);
-      y -= l.h;
-    });
-
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(5, 5, 5);
-    scene.add(light);
-    scene.add(new THREE.AmbientLight(0x404040));
-
-    camera.position.set(15, 5, 15);
-    camera.lookAt(0, 0, 0);
-
-    function animate() {
-      if(!document.contains(overlay)) return;
-      requestAnimationFrame(animate);
-      scene.rotation.y += 0.005;
-      renderer.render(scene, camera);
-    }
-    animate();
-  }
-};
-
-// Start the Engine
-App.init();
-</script>
-</body>
-</html>
+    // ITALY
+    ["Pompeii", "Italy", "Europe", 40.7460, 14.4989, "Roman", "Preserved Roman city from 79 CE eruption"],
+    ["Roman Forum", "Italy", "Europe", 41.8925, 12.4853, "Roman", "Center of ancient Rome"],
+    ["Herculaneum", "Italy", "Europe", 40
